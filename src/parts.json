@@ -1,0 +1,505 @@
+{
+  "components": [
+    {
+      "id": "angle",
+      "label": "折楔",
+      "width": 13,
+      "height": 58,
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAA6CAYAAABrlNNpAAAAlElEQVR4nM2WUQrAIAxDEy+y38Huf74MBoMhDmymnfmSwiOpopXbsSMoFRgqURcYEKKQ7kVKT/MhOdBTnBZPDoQopHXPSY0ahzvJgZACyYHedO3csHhyIEQh9fRTQ90qkV4iTqwLdjw5EB0IqRBT3z32uv133bn+oKYDwYWY5vTmlvOh6obYKk6LxzQnVJr7W/4+NU6jaRLj/0E9ZQAAAABJRU5ErkJggg=="
+    },
+    {
+      "id": "vertical",
+      "label": "长竖楔",
+      "width": 15,
+      "height": 58,
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAA6CAYAAABvYQNUAAAAhklEQVR4nO2SQQrAIAwEs4v/6LXQ/7/PngQLxSaNJSk4pygZNwSxHXsVEYidWlrRXY4eqv2hPDWMoLYxlYx/ji18+UHixsa0ZHhkC2hFjk+CsGQN6A85FmZeGi3NHhlhycllzE6GR76F4oBLTrAwhCWrpqA44JJt0Nh/YckTFwaP7Er+Vj4Bc9wF9QliKh8AAAAASUVORK5CYII="
+    },
+    {
+      "id": "horizontal",
+      "label": "横楔",
+      "width": 34,
+      "height": 19,
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAATCAYAAAD1Yd/KAAAAfklEQVR4nMXWMQqAMAyF4TzxHq6C9z9fXHRQYm3S5uWHLkXrR3AotmNXeQYpaDE+rNeiQ75SJqgFoYJ6IBTQGnhHM35sz0RSpxSZiJWFQQXE6m9SYEFc0CoI3hvZEPQ+OAuC0QNGIJCJRSCQhDwQSGI9EAihFgQMwJ0FKbmhnXauD7Fm+32OAAAAAElFTkSuQmCC"
+    },
+    {
+      "id": "small-angle",
+      "label": "小折楔",
+      "width": 23,
+      "height": 15,
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAPCAYAAAAPr1RWAAAAeUlEQVR4nK2UUQ7AIAhD6eI99rtk9z9f/ZnJNgFFbOIfvlZQcd4X5SvIJh0KjK+VhstjoCVmxqRM1nGlbX9428hJI9estUUSQ6UVxmsLgv3uTmQl3yF6ybkIRfS2jKTOqCQSY1RQgmBMGndwC4wIUINr4PQHZr3QLaoQ4xOiF4Gl1QAAAABJRU5ErkJggg=="
+    },
+    {
+      "id": "short-vertical",
+      "label": "短竖楔",
+      "width": 20,
+      "height": 29,
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAdCAYAAACqhkzFAAAAdUlEQVR4nN2QSwrAIAwFM6H36LbQ+5/P0oW0lAqaxH58C1FDxonM65LkCGJLyv1ToWBNUgmOOsa8C10MJciSfelm6LUkbyIMOR+uQPdfqrOfGiBvGdICxPqKWhstQCw19fl8AEjl3UAjN0eHAxIB5Fcjy+PADfFtBL7ablBRAAAAAElFTkSuQmCC"
+    },
+    {
+      "id": "long-horizontal",
+      "label": "长横楔",
+      "width": 58,
+      "height": 16,
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAAQCAYAAABHjGx4AAAAgUlEQVR4nN2WQQrAIAwEd2H/0Wuh/3+fvUSQIq1I2ibOJV5UJi4qt2OHUQAQiyITrLTjFq4gyhvBSskursl56cTltE74yMvqSHxTN0D4h9GmMrvoKB4pYwZRt2YJsUkfXX69oay+ceOGeVo8TzSUlKdoeLGnT/0yYrjQ+9Snl+pxAgH2D7MYZh6RAAAAAElFTkSuQmCC"
+    }
+  ],
+  "counts": {
+    "A": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "a": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "B": [
+      1,
+      1,
+      3,
+      0,
+      0,
+      0
+    ],
+    "b": [
+      1,
+      1,
+      3,
+      0,
+      0,
+      0
+    ],
+    "C": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      0
+    ],
+    "c": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      0
+    ],
+    "D": [
+      1,
+      0,
+      1,
+      0,
+      2,
+      0
+    ],
+    "d": [
+      1,
+      0,
+      1,
+      0,
+      2,
+      0
+    ],
+    "E": [
+      0,
+      1,
+      3,
+      0,
+      0,
+      0
+    ],
+    "e": [
+      0,
+      1,
+      3,
+      0,
+      0,
+      0
+    ],
+    "F": [
+      0,
+      1,
+      2,
+      0,
+      0,
+      0
+    ],
+    "f": [
+      0,
+      1,
+      2,
+      0,
+      0,
+      0
+    ],
+    "G": [
+      0,
+      2,
+      2,
+      0,
+      1,
+      0
+    ],
+    "g": [
+      0,
+      2,
+      2,
+      0,
+      1,
+      0
+    ],
+    "H": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      0
+    ],
+    "h": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      0
+    ],
+    "I": [
+      0,
+      1,
+      1,
+      2,
+      0,
+      0
+    ],
+    "i": [
+      0,
+      1,
+      1,
+      2,
+      0,
+      0
+    ],
+    "J": [
+      0,
+      1,
+      1,
+      2,
+      0,
+      0
+    ],
+    "j": [
+      0,
+      1,
+      1,
+      2,
+      0,
+      0
+    ],
+    "K": [
+      1,
+      0,
+      0,
+      2,
+      0,
+      2
+    ],
+    "k": [
+      1,
+      0,
+      0,
+      2,
+      0,
+      2
+    ],
+    "L": [
+      1,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    "l": [
+      1,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    "M": [
+      2,
+      0,
+      0,
+      2,
+      0,
+      0
+    ],
+    "m": [
+      2,
+      0,
+      0,
+      2,
+      0,
+      0
+    ],
+    "N": [
+      2,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    "n": [
+      2,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    "O": [
+      0,
+      1,
+      2,
+      2,
+      0,
+      0
+    ],
+    "o": [
+      0,
+      1,
+      2,
+      2,
+      0,
+      0
+    ],
+    "P": [
+      1,
+      2,
+      0,
+      1,
+      0,
+      0
+    ],
+    "p": [
+      1,
+      2,
+      0,
+      1,
+      0,
+      0
+    ],
+    "Q": [
+      1,
+      1,
+      0,
+      2,
+      0,
+      0
+    ],
+    "q": [
+      1,
+      1,
+      0,
+      2,
+      0,
+      0
+    ],
+    "R": [
+      0,
+      2,
+      1,
+      0,
+      1,
+      0
+    ],
+    "r": [
+      0,
+      2,
+      1,
+      0,
+      1,
+      0
+    ],
+    "S": [
+      0,
+      3,
+      1,
+      0,
+      0,
+      0
+    ],
+    "s": [
+      0,
+      3,
+      1,
+      0,
+      0,
+      0
+    ],
+    "T": [
+      2,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "t": [
+      2,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "U": [
+      1,
+      0,
+      2,
+      2,
+      0,
+      0
+    ],
+    "u": [
+      1,
+      0,
+      2,
+      2,
+      0,
+      0
+    ],
+    "V": [
+      1,
+      0,
+      3,
+      1,
+      0,
+      0
+    ],
+    "v": [
+      1,
+      0,
+      3,
+      1,
+      0,
+      0
+    ],
+    "W": [
+      1,
+      0,
+      2,
+      3,
+      0,
+      0
+    ],
+    "w": [
+      1,
+      0,
+      2,
+      3,
+      0,
+      0
+    ],
+    "X": [
+      2,
+      2,
+      0,
+      0,
+      0,
+      0
+    ],
+    "x": [
+      2,
+      2,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Y": [
+      1,
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "y": [
+      1,
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Z": [
+      2,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    "z": [
+      2,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    "and": [
+      0,
+      0,
+      0,
+      1,
+      2,
+      1
+    ],
+    "the": [
+      0,
+      0,
+      0,
+      0,
+      2,
+      1
+    ],
+    "a_word": [
+      0,
+      0,
+      0,
+      2,
+      2,
+      0
+    ],
+    "OF": [
+      0,
+      0,
+      1,
+      0,
+      3,
+      0
+    ],
+    "OR": [
+      2,
+      0,
+      0,
+      2,
+      0,
+      0
+    ],
+    "!/?": null
+  }
+}

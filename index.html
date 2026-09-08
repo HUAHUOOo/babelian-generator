@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#243d35">
+  <title>巴别语生成器 · ATO</title>
+  <style>
+    :root { color-scheme: light; --ink:#1f2b28; --green:#243d35; --muted:#6e766e; --paper:#fffdf7; --line:#dfdfd3; --accent:#a57b37; --glyph-height:44px; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#efefe8; color:var(--ink); font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+    button,textarea { font:inherit; }
+    button { cursor:pointer; touch-action:manipulation; }
+    button:disabled { opacity:.4; cursor:default; }
+    button:focus-visible,summary:focus-visible { outline:3px solid #ad833a; outline-offset:4px; }
+    .masthead { background:var(--green); color:#efeee2; }
+    .masthead-inner { max-width:1160px; margin:auto; padding:20px 36px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand { display:flex; align-items:center; gap:13px; }
+    .brand-symbol { height:32px; width:34px; object-fit:contain; filter:brightness(0) invert(.94); }
+    .brand-name { font-family:Georgia,serif; font-size:16px; letter-spacing:2px; }
+    .brand-divider { height:19px; border-left:1px solid #718179; margin:0 4px; }
+    .brand-detail { font-size:12px; color:#c1cbbd; letter-spacing:2px; }
+    .offline { font-size:12px; color:#d3dccd; display:flex; align-items:center; gap:8px; white-space:nowrap; }
+    .offline::before { content:""; width:6px; height:6px; background:#bccb9a; border-radius:50%; }
+    main { max-width:1160px; padding:38px 36px 28px; margin:auto; }
+    .intro { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:25px; }
+    .eyebrow { color:var(--accent); font-size:10px; letter-spacing:2.6px; font-weight:700; margin-bottom:9px; }
+    h1 { margin:0; font-size:32px; letter-spacing:1px; font-weight:600; line-height:1.4; }
+    .intro p { margin:10px 0 0; font-size:13px; color:var(--muted); line-height:1.7; }
+    .primary { padding:12px 20px; background:var(--green); border:1px solid var(--green); color:#fffdf4; border-radius:7px; display:flex; align-items:center; gap:9px; white-space:nowrap; }
+    .primary:hover:not(:disabled) { background:#385547; }
+    .download-mark { font-size:19px; line-height:1; }
+    .sheet { background:var(--paper); border:1px solid #dadbd0; border-radius:12px; box-shadow:0 7px 24px #243d3505; overflow:hidden; }
+    .sheet-head { padding:20px 26px 0; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .section-label { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:600; }
+    .section-label .en { color:#8b8e7f; font-size:10px; font-weight:400; letter-spacing:1.6px; }
+    #glyph-count { color:var(--muted); font-size:11px; font-variant-numeric:tabular-nums; }
+    .cipher-area { padding:24px 26px; min-height:166px; max-height:480px; overflow-y:auto; }
+    #cipher-output { min-height:100px; }
+    .cipher-line { display:flex; flex-wrap:wrap; gap:10px 3px; align-items:center; min-height:54px; margin-bottom:10px; }
+    .cipher-line:last-child { margin-bottom:0; }
+    .cipher-glyph { height:var(--glyph-height); flex:none; display:block; object-fit:fill; }
+    .empty { color:#9a9e90; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:11px; min-height:112px; text-align:center; }
+    .empty img { height:35px; width:45px; object-fit:contain; opacity:.25; }
+    .empty span { font-size:13px; }
+    .english-area { border-top:1px solid #e4e4d9; background:#f7f7f0; padding:18px 26px 13px; }
+    .english-head { display:flex; gap:12px; align-items:center; justify-content:space-between; }
+    .hint { font-size:11px; color:#818778; }
+    #english-input { display:block; width:100%; margin-top:11px; padding:2px 0; color:#3d4c42; min-height:60px; max-height:300px; resize:vertical; border:none; outline:none; background:transparent; font-family:"Consolas","Courier New",monospace; font-size:17px; line-height:1.7; letter-spacing:.5px; white-space:pre-wrap; tab-size:4; }
+    #english-input::placeholder { color:#a4aa9c; font-size:14px; letter-spacing:0; }
+    #english-input:focus { box-shadow:0 2px 0 #9aaa90; }
+    .editor-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:5px; }
+    .space-note { color:#737f6c; font-size:11px; line-height:1.7; }
+    .text-actions { display:flex; align-items:center; gap:17px; flex:none; }
+    .text-button { border:0; background:none; padding:5px 0; font-size:12px; color:#5c6958; }
+    .text-button:hover:not(:disabled) { color:#182f22; text-decoration:underline; }
+    .keyboard-section { margin-top:27px; }
+    .keyboard-top { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:16px; }
+    .keyboard-title { margin:0; font-size:15px; font-weight:600; }
+    .keyboard-title span { font-weight:400; color:#8a8f7e; font-size:11px; margin-left:10px; }
+    .case-switch { display:flex; border:1px solid #d6d9cd; padding:3px; border-radius:8px; background:#e6e8de; gap:3px; }
+    .case-switch button { background:transparent; color:#77816d; border:0; border-radius:5px; padding:7px 13px; font-size:12px; white-space:nowrap; }
+    .case-switch button[aria-pressed="true"] { background:var(--paper); box-shadow:0 1px 4px #253c3312; color:var(--green); }
+    .keys { display:grid; grid-template-columns:repeat(20,minmax(0,1fr)); gap:8px 0; }
+    .letter-key { grid-column:span 2; margin:0 4px; min-width:0; height:88px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; padding:10px 7px 8px; border:1px solid #d5d8ca; border-bottom:3px solid #c6ccba; border-radius:8px; background:#fafbf5; color:#7a836c; box-shadow:0 2px 3px #35473605; transition:background .1s,transform .1s; }
+    .letter-key:nth-child(11) { grid-column:2 / span 2; }
+    .letter-key:nth-child(20) { grid-column:4 / span 2; }
+    .key-glyph { max-width:100%; height:39px; object-fit:contain; display:block; pointer-events:none; }
+    .key-letter { font-family:Georgia,serif; font-size:16px; line-height:18px; pointer-events:none; }
+    .letter-key.assigned { background:#faffed; border-color:#9eb586; color:#38552b; box-shadow:0 2px 5px #46632e15; }
+    .letter-key:disabled { opacity:1; background:#e7e9e1; color:#a4ab99; border-color:#d8ddcf; box-shadow:none; }
+    .key-placeholder { height:39px; display:block; }
+    .letter-key:hover:not(:disabled) { background:#e6edde; border-color:#a9b69a; }
+    .letter-key:active:not(:disabled),.letter-key.pressed:not(:disabled) { background:#dce7d1; transform:translateY(2px); border-bottom-width:1px; }
+    .special-heading { font-size:11px; color:#7d8672; margin:18px 4px 9px; }
+    .special-keys { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; margin:0 4px; }
+    .special-empty { grid-column:1 / -1; border:1px dashed #d3dac8; border-radius:7px; color:#8c9780; padding:15px; font-size:12px; text-align:center; }
+    .keyboard-help { font-size:12px; color:#718362; line-height:1.8; margin:0 4px 13px; }
+    .special-key { min-width:0; height:86px; border:1px solid #d0d7c3; border-bottom:3px solid #c0cab0; border-radius:8px; background:#f5f7ed; color:#647455; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; padding:8px 5px; }
+    .special-key:hover { background:#e6edde; }
+    .special-key:active { transform:translateY(2px); border-bottom-width:1px; }
+    .special-key .key-glyph { height:34px; }
+    .special-key .key-letter { font-size:14px; }
+    .special-key small { font-family:"Microsoft YaHei",sans-serif; font-size:9px; margin-left:5px; }
+    .utility-keys { display:grid; grid-template-columns:1fr 2.6fr 1fr; gap:8px; margin-top:10px; }
+    .utility-key { min-height:46px; display:flex; align-items:center; justify-content:center; gap:9px; padding:8px 10px; background:#e6e9de; color:#53634c; border:1px solid #d1d7c5; border-bottom:2px solid #c8d0bb; border-radius:7px; font-size:13px; }
+    .utility-key:hover { background:#dde4d4; }
+    .utility-key:active { transform:translateY(1px); }
+    .utility-key .symbol { font-size:18px; line-height:1; }
+    .utility-key small { font-size:10px; color:#869078; }
+    .key-info { font-size:11px; line-height:1.7; color:#7d8672; margin-top:12px; display:flex; justify-content:space-between; gap:18px; }
+    .footer { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; border-top:1px solid #d9ddcf; padding-top:17px; margin-top:23px; color:#939b87; font-size:11px; }
+    details { line-height:1.8; max-width:650px; }
+    summary { cursor:pointer; color:#758068; }
+    details p { margin:8px 0 0; }
+    .footer-code { white-space:nowrap; font-size:10px; letter-spacing:1.5px; margin-top:3px; }
+    [hidden] { display:none!important; }
+    .workspace-tabs { display:flex; align-items:center; gap:7px; border-bottom:1px solid #d5dccc; margin-top:27px; padding-bottom:9px; flex-wrap:wrap; }
+    .workspace-tab { border:0; padding:10px 15px; border-radius:7px; background:transparent; color:#6e7c62; }
+    .workspace-tab[aria-selected="true"] { background:var(--green); color:white; }
+    #active-map-label { font-size:11px; color:#718362; margin-left:auto; }
+    .mapping-layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:20px; margin-top:22px; }
+    .mapping-card { padding:22px; background:var(--paper); border:1px solid var(--line); border-radius:10px; min-width:0; }
+    aside.mapping-card { align-self:start; }
+    .mapping-card h2 { font-size:16px; margin:0 0 12px; }
+    .mapping-help { font-size:12px; line-height:1.8; color:#76836a; margin:8px 0 14px; }
+    .candidate-stage { display:grid; grid-template-columns:42px 1fr 42px; gap:15px; align-items:center; min-height:165px; text-align:center; }
+    .candidate-stage button { height:42px; border:1px solid #d9ddcf; border-radius:50%; background:#eef1e7; color:var(--green); font-size:23px; }
+    #candidate-image { width:160px; height:98px; object-fit:contain; max-width:100%; }
+    #candidate-id { font-size:11px; color:#7e8976; margin:9px 0 6px; }
+    #candidate-meaning { font-family:Consolas,monospace; font-size:23px; overflow-wrap:anywhere; min-height:28px; }
+    #candidate-position { color:#829173; font-size:12px; margin-top:5px; }
+    .filter-actions { display:flex; justify-content:flex-end; gap:16px; margin:7px 0 16px; }
+    .part-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; border-block:1px solid #e2e6d9; padding:16px 0; }
+    .part-control { text-align:center; background:#f5f6ee; border-radius:7px; padding:10px 5px; min-width:0; }
+    .part-symbol-box { display:flex; align-items:center; justify-content:center; height:64px; }
+    .part-control img { object-fit:contain; max-width:100%; }
+    .part-label { display:block; font-size:11px; color:#7d8972; margin:5px 0 7px; }
+    .part-stepper { display:flex; justify-content:center; align-items:center; gap:4px; }
+    .part-stepper button { width:27px; height:30px; border:0; border-radius:5px; color:#46603b; background:#e6ebdb; font-size:17px; }
+    .part-stepper input { width:42px; height:30px; padding:0; text-align:center; border:1px solid #d7ddca; border-radius:4px; color:var(--ink); background:white; font:16px Consolas,monospace; appearance:textfield; }
+    .part-stepper input::-webkit-inner-spin-button { appearance:none; }
+    .mapping-form { margin-top:17px; }
+    .mapping-form label,.profile-name-label { display:block; font-size:12px; margin:0 0 8px; }
+    .mapping-input { width:100%; border:1px solid #cfd9c3; border-radius:6px; padding:11px 12px; background:white; color:var(--ink); font:16px Consolas,"Microsoft YaHei",monospace; }
+    .mapping-input:focus { outline:2px solid #aebfa0; outline-offset:1px; }
+    .mapping-actions { display:flex; gap:9px; flex-wrap:wrap; margin-top:11px; }
+    .secondary { border:1px solid #cbd6bf; border-radius:6px; padding:10px 13px; background:#edf2e5; color:#49613a; font-size:12px; }
+    .mapping-actions .primary { font-size:12px; padding:10px 13px; }
+    #mapping-conflict { color:#99712c; font-size:11px; line-height:1.7; margin-top:10px; }
+    .catalog-details { margin-top:20px; }
+    .glyph-catalog { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin-top:12px; }
+    .catalog-key { display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #d8dfcc; background:#f8faf2; border-radius:6px; padding:7px 3px; min-width:0; gap:7px; height:70px; }
+    .catalog-key[aria-pressed="true"] { border-color:#6b8657; background:#e2ecd7; }
+    .catalog-key img { width:45px; height:30px; max-width:100%; object-fit:contain; }
+    .catalog-key span { color:#637453; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+    .profile-slots { display:flex; flex-direction:column; gap:8px; margin:15px 0; }
+    .profile-slot { text-align:left; border:1px solid #d6decb; border-radius:7px; background:#f5f8ee; padding:12px; color:var(--ink); }
+    .profile-slot[aria-pressed="true"] { border-color:#567543; box-shadow:inset 3px 0 #567543; background:#e9f0e1; }
+    .profile-slot strong { font-size:12px; font-weight:500; display:block; overflow-wrap:anywhere; }
+    .profile-slot small { display:block; font-size:10px; margin-top:5px; color:#839276; }
+    .profile-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:11px; }
+    .profile-actions button { justify-content:center; padding:10px; font-size:12px; }
+    .profile-extra { display:flex; flex-wrap:wrap; gap:13px; border-top:1px solid #e0e6d5; padding-top:14px; margin-top:17px; }
+    .key-letter { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .conflict-banner { padding:12px 15px; margin-top:14px; background:#fff3db; border:1px solid #e5cd9e; border-radius:7px; font-size:12px; color:#866122; }
+    .conflict-banner button { margin-left:10px; }
+    #conflict-dialog { width:min(620px,calc(100% - 28px)); max-height:90vh; overflow:auto; padding:26px; border:1px solid #d3dbc9; border-radius:12px; color:var(--ink); background:var(--paper); box-shadow:0 20px 80px #152b2a44; }
+    #conflict-dialog::backdrop { background:#182a2566; }
+    #conflict-dialog h2 { font-size:19px; margin:0 0 12px; }
+    #conflict-description { font-size:13px; line-height:1.8; overflow-wrap:anywhere; }
+    .conflict-options { display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-top:18px; }
+    .conflict-option { border:1px solid #cbd8be; border-radius:8px; padding:18px 10px; background:#f0f5e8; color:var(--ink); min-width:0; display:flex; flex-direction:column; align-items:center; gap:11px; }
+    .conflict-option img { width:95px; max-width:100%; height:65px; object-fit:contain; }
+    .conflict-option small { font-size:12px; line-height:1.7; overflow-wrap:anywhere; max-width:100%; }
+    .conflict-option strong { font-size:13px; color:#37552b; }
+    #conflict-cancel { display:block; margin:20px 0 0 auto; }
+    @media(max-width:900px) { .mapping-layout { grid-template-columns:1fr; } .profile-slots { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); } }
+    @media(max-width:600px) { .mapping-card { padding:16px; } .mapping-layout { gap:14px; } .workspace-tab { font-size:12px; padding:9px 11px; } #active-map-label { width:100%; margin:5px 0 0; } .glyph-catalog { grid-template-columns:repeat(6,minmax(0,1fr)); } .part-stepper { gap:2px; } .part-stepper input { width:30px; } .part-stepper button { width:23px; } .profile-slots { display:flex; } .candidate-stage { gap:8px; } }
+    #status { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(12px); opacity:0; pointer-events:none; background:#243d35; color:#fffdf7; padding:12px 20px; border-radius:8px; font-size:13px; transition:opacity .15s,transform .15s; max-width:calc(100% - 32px); text-align:center; box-shadow:0 6px 25px #193d3026; z-index:5; }
+    #status.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    @media (max-width:900px) {
+      .masthead-inner { padding-inline:24px; }
+      main { padding:28px 24px 24px; }
+    }
+    @media (max-width:600px) {
+      :root { --glyph-height:34px; }
+      .masthead-inner { padding:16px 18px; }
+      .brand-name { font-size:13px; }
+      .brand-detail,.brand-divider { display:none; }
+      main { padding:25px 14px 22px; }
+      .intro { gap:10px; align-items:center; margin-bottom:21px; }
+      h1 { font-size:25px; }
+      .intro p { font-size:11px; max-width:230px; margin-top:7px; }
+      .eyebrow { font-size:8px; letter-spacing:1.9px; }
+      .primary { padding:10px 12px; font-size:12px; gap:5px; }
+      .sheet-head { padding:17px 17px 0; }
+      .cipher-area { padding:21px 17px; min-height:146px; max-height:350px; }
+      .cipher-line { min-height:44px; gap:9px 2px; }
+      .english-area { padding:15px 17px 12px; }
+      .section-label .en { font-size:8px; letter-spacing:1px; }
+      .english-head .hint { display:none; }
+      #english-input { font-size:15px; min-height:64px; }
+      .editor-foot { align-items:flex-start; flex-direction:column; gap:3px; }
+      .text-actions { align-self:flex-end; gap:22px; }
+      .keyboard-top { gap:8px; }
+      .keyboard-title { font-size:14px; }
+      .keyboard-title span { display:none; }
+      .case-switch button { padding:7px 10px; font-size:11px; }
+      .keys { row-gap:7px; }
+      .letter-key { margin:0 2px; height:68px; padding:8px 2px 6px; gap:5px; border-radius:6px; }
+      .key-glyph,.key-placeholder { height:28px; }
+      .key-letter { font-size:14px; }
+      .special-heading { margin-top:15px; }
+      .special-keys { gap:5px; margin:0 2px; }
+      .special-key { height:78px; padding-inline:3px; gap:5px; }
+      .special-key .key-glyph { height:28px; }
+      .special-key .key-letter { font-size:12px; }
+      .special-key small { display:block; margin:0; line-height:11px; }
+      .utility-keys { grid-template-columns:1fr 1.8fr 1fr; gap:6px; }
+      .utility-key { padding-inline:5px; gap:5px; font-size:12px; }
+      .utility-key small { display:none; }
+      .key-info { display:block; font-size:10px; }
+      .key-info span:last-child { display:none; }
+      .footer { margin-top:19px; }
+      .footer-code { display:none; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; } }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand"><img id="brand-glyph" class="brand-symbol" alt=""><span class="brand-name">AEON TRESPASS</span><span class="brand-divider"></span><span class="brand-detail">密文工坊</span></div>
+      <span class="offline">离线可用</span>
+    </div>
+  </header>
+  <main>
+    <div class="intro">
+      <div><div class="eyebrow">CRYPTIC LANGUAGES / BABELIAN</div><h1>巴别语生成器</h1><p>用楔形逐字书写，让英文与密文同步呈现。</p></div>
+      <button id="download" class="primary" type="button" disabled><span class="download-mark" aria-hidden="true">↓</span>下载图片</button>
+    </div>
+
+    <section class="sheet" aria-label="巴别语与英文编辑区">
+      <div class="sheet-head"><div class="section-label">巴别语<span class="en">BABELIAN</span></div><span id="glyph-count">0 个字形</span></div>
+      <div class="cipher-area" id="cipher-area"><div id="cipher-output" role="img" aria-label="尚未输入巴别语"></div></div>
+      <div class="english-area">
+        <div class="english-head"><label for="english-input" class="section-label">英文原文<span class="en">ENGLISH</span></label><span class="hint">可直接输入或粘贴</span></div>
+        <textarea id="english-input" aria-describedby="space-note" maxlength="6000" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="点击下方字形，或在这里输入英文…"></textarea>
+        <div class="editor-foot"><span class="space-note" id="space-note">空格仅显示在英文中，不占用巴别语位置。</span><div class="text-actions"><button id="undo" type="button" class="text-button" disabled>撤销</button><button id="copy" type="button" class="text-button" disabled>复制英文</button><button id="clear" type="button" class="text-button" disabled>清空</button></div></div>
+      </div>
+    </section>
+
+    <div class="workspace-tabs" role="tablist" aria-label="书写与解读工具"><button id="tab-write" class="workspace-tab" role="tab" aria-selected="true" aria-controls="panel-write" type="button">字形键盘</button><button id="tab-mapping" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-mapping" type="button">部件筛选与映射</button><span id="active-map-label">当前映射：空白配置</span></div>
+    <div id="mapping-warning" class="conflict-banner" hidden><span id="mapping-warning-text"></span><button id="resolve-conflicts" type="button" class="text-button">选择字形并处理</button></div>
+    <section id="panel-write" class="keyboard-section" role="tabpanel" aria-labelledby="tab-write">
+      <div class="keyboard-top"><h2 class="keyboard-title" id="keyboard-title">字形键盘<span>QWERTY / 26 LETTERS</span></h2><div class="case-switch" role="group" aria-label="键盘字形大小写"><button type="button" id="case-upper" aria-pressed="true">大写 A–Z</button><button type="button" id="case-lower" aria-pressed="false">小写 a–z</button></div></div>
+      <p class="keyboard-help">首次使用为空白映射。到“部件筛选与映射”设置对应后，字母键才会亮起；大小写分别设置。</p>
+      <div id="letter-keys" class="keys" role="group" aria-label="QWERTY三排26个巴别语字母按键"></div>
+      <div class="special-heading">词语与符号 · 非单个英文字母的对应显示在这里</div>
+      <div id="special-keys" class="special-keys" role="group" aria-label="巴别语合字与符号按键"></div>
+      <div class="utility-keys"><button id="backspace" type="button" class="utility-key"><span class="symbol" aria-hidden="true">⌫</span>退格</button><button id="space" type="button" class="utility-key">空格<small>仅英文留空</small></button><button id="newline" type="button" class="utility-key"><span class="symbol" aria-hidden="true">↵</span>换行</button></div>
+      <div class="key-info"><span>电脑键盘大小写跟随 Caps Lock / Shift。</span><span>切换字形不改变已输入的内容。</span></div>
+    </section>
+    <section id="panel-mapping" role="tabpanel" aria-labelledby="tab-mapping" hidden>
+      <div class="mapping-layout">
+        <div class="mapping-card">
+          <h2>按部件查找字形</h2>
+          <p class="mapping-help">设置下方六类部件的准确数量，在候选字形之间切换。</p>
+          <div class="candidate-stage"><button id="candidate-prev" type="button" aria-label="上一个候选">‹</button><div><img id="candidate-image" alt="候选巴别语字形"><div id="candidate-id"></div><div id="candidate-meaning"></div><div id="candidate-position" aria-live="polite"></div></div><button id="candidate-next" type="button" aria-label="下一个候选">›</button></div>
+          <div class="filter-actions"><button id="filter-reset" type="button" class="text-button">数量归零</button><button id="filter-all" type="button" class="text-button">浏览全部字形</button></div>
+          <div id="part-controls" class="part-grid" aria-label="六类楔形部件数量"></div>
+          <div class="mapping-form"><label for="mapping-value">此字形对应的字母、词语或符号（区分大小写）</label><input id="mapping-value" class="mapping-input" maxlength="40" autocomplete="off" spellcheck="false" placeholder="例如 S、s、AND 或 ?；留空取消对应"><div class="mapping-actions"><button id="mapping-apply" type="button" class="primary">应用此映射</button><button id="mapping-insert" type="button" class="secondary">插入此字形</button><button id="mapping-reset" type="button" class="text-button">清除此映射</button></div><div id="mapping-conflict" role="status"></div></div>
+          <details class="catalog-details"><summary>全部58个字形 · 点击可重新编辑</summary><div id="glyph-catalog" class="glyph-catalog"></div></details>
+        </div>
+        <aside class="mapping-card" aria-label="映射配置保存栏位"><h2>映射配置</h2><p class="mapping-help">5个独立栏位。选中栏位后可保存当前映射，或载入已保存的配置；支持只设置部分字形。</p><div id="profile-slots" class="profile-slots"></div><label for="profile-name" class="profile-name-label">配置名称</label><input id="profile-name" class="mapping-input" maxlength="30" autocomplete="off"><div class="profile-actions"><button id="profile-save" type="button" class="primary">保存到此栏位</button><button id="profile-load" type="button" class="secondary">载入此配置</button></div><div class="profile-extra"><button id="profile-default" type="button" class="text-button">新建空白配置</button><button id="profile-export" type="button" class="text-button">导出当前配置</button><button id="profile-import" type="button" class="text-button">导入到此栏位</button><input id="profile-file" type="file" accept=".json,application/json" hidden></div><p id="profile-status" class="mapping-help" role="status">工作中的映射会自动保存在本浏览器。命名保存后，可随时切换。</p></aside>
+      </div>
+    </section>
+    <footer class="footer"><details><summary>字形依据与使用说明</summary><p>内置字形来自你提供的两张巴别语对照表，共58个；不预填任何对应答案。先按六类部件数量找出字形，再设置其字母、词语或符号。字形编号只用于区分图片，不代表英文。单个 A–Z 或 a–z 会点亮对应键，其余文本显示在下方词语与符号区。对应区分大小写，重复分配时需要选择一个字形重新编辑。</p><p>电脑键盘输入跟随 Caps Lock / Shift，页面键盘同步切换。未匹配的字母仅保留英文，不生成字形；词语和符号请点击下方对应按键，不会按文本自动合并。空格只显示在英文中，不占用字形位置。未设置对应的字形仍可从筛选页插入，英文暂用 ? 占位；之后设置映射，会保留字形并更新英文。</p><p>修改映射、书写、删除都支持撤销。当前工作与5个配置栏位在浏览器允许时保存在本机，可导出JSON备份；新建空白配置不会清空保存栏位。在词语末尾按退格会删除整枚字形；修改内部英文会展开为普通字母。“下载图片”导出当前巴别语和英文。全部字形内置，断网也可使用。</p></details><span class="footer-code">ATO / BABELIAN / 02</span></footer>
+  </main>
+  <div id="status" role="status" aria-live="polite"></div>
+  <dialog id="conflict-dialog" aria-labelledby="conflict-title" aria-describedby="conflict-description"><h2 id="conflict-title">这个对应已被使用</h2><p id="conflict-description"></p><div id="conflict-options" class="conflict-options"></div><button id="conflict-cancel" type="button" class="secondary" autofocus>取消，暂不修改</button></dialog>
+  <script>
+  "use strict";
+  const GLYPHS = {"A":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAA8CAYAAADhR3NQAAAA00lEQVR42u2ZwQ6EIAxEGbL/sVcT///7xtNeNjFRa2kHytEY8ximYwF8961lG70lHBYonjyj9Vsfp8n+g+HipExQdHifP/hMnoLFU1SrPlQkZIZidqXg5cXuWdojlOJKRsdTKM4QCVgyp+gYB5hGKUb4Sk4pVpdghHKtPDml2AKTXUYpDmrstJViVA/1VCmMMnv65WNGKNQOWX2LhVq+G1BQPuBw6xykqg9qRqf3/69H9051EOsJhVLqBhRGJ3sZ/W0olFJB1x512/6K2lMote6pywEeORn1J9ac5AAAAABJRU5ErkJggg==","width":37,"height":60},"B":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEoAAAA8CAYAAADBqyytAAABgklEQVR42u2bS67DMAhFuRb7eNNK3f/6bkdvmjp1jPkxTBMJHwO1+eDv/ZKW7zIawV5QvHjOi99PCVe/UQPl4BQWJt7h/3tqsDt0BOvndQxDpSjSwTw9sGEQFFMAU0dxwmMcgxdQ36wVES2KkztAh/CW9VKJJ5xxlb7C2EHCExaFzf+K7mKVGh8LTkJZilOa1G2OWBQLAoIHi8JhAPTueu7da+V48OSBL7To5tgUHtBu14sMCBag0ljQbIyi5BWcdj1mtrDx4G4gY678CtSOhbErxbny5JgFxSLAsDOYo1hhwWWG071bqrOAy+gZTgToE1jVEVWKC8xcKQ5zr9TCQG5lO3XyQ6seJ3STRvDUzLihNDcAQrf9JEvudRVm4QqDyi5m0ZrIjIB2uF7awsKVRaVe9C/rHd0evR6j8AAwVh4aohQrLPSIx4Og0MDOJu56xEOSVmL0wDTCyuBh6XxUiKYPtZolMSog3AU5va5RtekicxUGUUBZuh/aohKPeHR6WEQ+wJ1RKWHbX24AAAAASUVORK5CYII=","width":74,"height":60},"C":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD0AAAA8CAYAAADVPrJMAAABIUlEQVR42u2awQ7DIAxDa8R/7Dpp//993rWHrUBUCkmM1GOhDztAQvH6vI9srRwJ2wpoPvTO31YXTfYZAg+A8jxW3UBlRrc3tJAtcpdWb0EHtbYnaNzZR3EKIHsLuuPQUxzEKKT0DQmKYlrQfvdntvopzg8csndvbq6YzqDy7tCY1U8JApbS3rSWgLlbAe9ppbmiNDtBZbSg4RzerDQayoeYgHphCXbaaUb8Y5a1W6v3yMD0tG3Vjg+icdaR8Rg6O/45S2l6vaSzQjMSaA80HYDCavE6CLuboibw2gEMx0kIRmMaWRIOnJ4jwI0mLQlHyMJCyQIasXICXesk+rsIUjoRNKS0oGNDQ0ongsbVXi2ls8S2lBZ04BQzk9LMAv3TOV/Gvi4FcdF8owAAAABJRU5ErkJggg==","width":61,"height":60},"D":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAAA7CAYAAADMzlLJAAABPklEQVR42u1bSQ7DMAjMoPyj10r9//vopeqxjWMDg8FSjiaZxcTgBI/X86g65Cg87oLXz9XKVwKvu7jEWnllJiHC9jQkiLHlsTDWdgkv1AUz4JGdhJMsAasRudPgNZAIEzLYlB8lH1XA33EjViS8jPt47Kw8PNa8Zge5WnlkBcxsexxEmxzdETSL8oi8+WmsujKCnilskFntK8rrDrbuBmaDvw5es9o4+lU324zQH3NXxf7OPwPLzX9zzZufUtXyzAkPHrFlsZWQiRAh3Ky4EWjRxkqjvpA9JDxjC1E2d3eMGB4s0ttfKravvMAzqI8R8Njs8ILa9mHuEIcHok183cxwKFVh6IrbsaVSCdu2HwCfqkRt5QeIbds72ZNuCbXy2c/cIv60KAU+y36/9JpHJ7wGbwdes7/rZafPTEbHG95XLCEYqyVKAAAAAElFTkSuQmCC","width":63,"height":59},"E":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEMAAAA8CAYAAAA9vgdnAAABSUlEQVR42u2awQ7DMAhDa8R/7Dpp//997LBztXVNgh3otVLVvBoKBjxez6Ovz2WNYA2MUIPhJy+Pi4fFyb2rz6SBMfurBjuQ1TkjmMMnK4FGJRhQVIkvOvi/iVgOxqzwQSYMkMk2JqhQShl3Ey8qwZgaZp6cPA+CBH4KA8RFEar9TVIV59UBjIKBQeU2dqpAlZPv194ECyBAyc8ooYRRMLAThNnKkAHwi58heZhdRgUURo+RNVepUIy4+wwFGKPzCVigmJBPEQ1jIRQTrRViBhivbvVV8UAvK90rlNm/gupllY3D5JaiveKhd4aBVWHCOkdB54wePK/7nZt6odTjxY2VgYNkpuIkXwttCBcpx0OxwbPeDM5dl24YCiqx6lM0tqKLZl3ayOqGVLW4mF+Z3rUyeRpTmzrfeEyAqjBQzenqdekdGzWJVv4NiVI6Nt80YIkAAAAASUVORK5CYII=","width":67,"height":60},"F":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA7CAYAAAAuEkmwAAABE0lEQVR42u2ZSw6EMAxD6yj3mO1Ic//zhS2bUUH0E5tk1QVIPNltGoPP79uUy5p4+WkdpzUuvHv3+e2A/z6+LFqABbgGEKXgSwFRCibsg08rzSVghYKx8+JgC/dTMCqI7GrOsiiygNrmYz9mw1qi/jcFNGMfHArqLW/FCOdkBnzSbtCzKPtkEcwK3hLCSSYIKB0yYJgm0rjCVcGuAOJBw40se9jUFBthUTBlN66m2CpAsKRqqFy0AFvlopkAwQZrCYdV+tgw1Br9VtuaWoqWeR6coqqTJGdQzEV7BxNUc9FbQ7Wx/4PvfbM3wSyUyaJQPEUlc1GoNnoozIM0uSjekotSJW0r5kHsvCy4auBbsWEBktQBTcwkMm2UdcsAAAAASUVORK5CYII=","width":56,"height":59},"G":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFkAAAA7CAYAAAAQNyb+AAABZElEQVR42u1bQQ7DMAibEf/YddL+/z523WGa2iakMZhTD6maOo4LxMXz/XoocsMEQX44yTzj6xonxh4ZP/PZP8c7ITGC7dmSC2myQGYICOQmC2ViZP6cxWTJRb1iJMi357YSY3+S7hAH5yyYHahwQswcm6sRlLKlPnwgYvUdrMfK7EJ6fXIxbLAjtRpwdO4nRxVA2Jr2dwGP7icjQS4FuCKPphw4/z2cEECwZTcuNnKALHATNRkbArxl9uIX+hNibpJcCNgBjIwUYFRhstibADJ03NTbcDizhMeEe04VRN5w98bqXSRLgHwXQxqM3X0Xyi4WeeEqnOXRuDo7A42VmtzxhBp3+C6YwQZjMRLFP5DYLYULEoajSlldwQYAxt5FFP5dIZgqvqgsGa6WZP7cvCGYy30bLs9F/ju4wM1fHFkCNpMLgZtc8aGYjmInJou9iSB3AxfyXeggVSGQBXKP/rKYvCA+9YgwQ8o1W0sAAAAASUVORK5CYII=","width":89,"height":59},"H":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEoAAAA7CAYAAADcrhwVAAABRElEQVR42u2aQRKDIAxF+Qz36LYzvf/50lVnXNgWMNEMvr9yoVEePwQBPV7Pgv6rgqBPbXNtm2t1PDt6/5Wa+Vbb3t86Aq8mI/UYowAFqGSSJyjhm1hHCVBIgMJRMUNEPRhMOAoJUE6O0sJpJ1IvGCigcBSgAJV5QK+TwYSjkACVxFGWNFbx3teLaKAOxIjcN9RoZ9Tg3LYJd2gnll3tsjpR2TTxzCywb3FshaqnP2k10lDPWIfe10psiTWH8axnPAk/B9FK/Jykt8d/NVYD1dCzA04DNVVhnB1iZ6xHybHcX71nqMypZ44Nsis3PloSSDoxVipQ5tQgy7J2304GJKdYEXCUoep5AdcKP8UWCEkrrR585kta8RhRzXayrbAUDKhyhx0ZHAUoQAEKUIAC1F4JFaAQoLwmnoDCUYACFKAAdR+9AX2LNRQC37h3AAAAAElFTkSuQmCC","width":74,"height":59},"I":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA7CAYAAAAuEkmwAAABVElEQVR42u1ayw6DMAzDVf5j10n7/+/LrkwalEJCnNCeOIx2bpyXCV6f91J5taX4ktWzrp5x4N3R3x/Zx2K/TYC9Q70W/pynViBZKIqNS9arl83kg+jQ+BRYIYsJOOAiQ77fnG/ee8+uZdks2As+I9EY7HlQLRgghcCh54NICg57/13IAoxanymJaAnLUo0FHKxLNQTQU0f9KitF4d0ulQL2mIa33X2jWSQLTE1mAowFCIPcpguZquZdoSALRRHQ36Xxwdup2wKLa31CFHUHytgu4S6ACAoMapmyJEGJdunjjJBomm7aTdVSDRmU7XKqmovfC7PsXikPomqiR/Z2KTyfSlVgEcU2GDt6MEVEb4oio6w4ZcMJcAKcAMsDdBWeWIcQUMmC8LSqkE8ZXrZqS9S9n5oZbUklisNgpcAo5a5Q3AqKTT+WlYLzohilaMQ3CrWy9hfQ80EjXoc6WAAAAABJRU5ErkJggg==","width":56,"height":59},"J":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEMAAAA8CAYAAAA9vgdnAAABW0lEQVR42u2bzQ4CIQyEGdL38Gri+z9fPejBGF1Z5GcK08SThizfTstQBJfbNSkekYVgDAx/fsKEvT38a6BgsiW/9RNj0sA4mkRN4MMYzgwlN0yJb0COUshXhIHK76hqi/2QdWoMy0+oC6svrahYjXxln4E/lmlfDYYPBtlkaWUBgVlpgo4P6xXjgsV0jVYEmB3oCAiIYsd75nMYO46OqgDzZs1IfcVyMMJAaGG6wk1Wbb8GMCAYUoaCDQZFt8vIVhJn7XSBQC2qGbPSJ0oBHQIl2mrSFYqlmNGl0NoCe5JmYKzivDSKYk6/wKhp0qX9KDu+oTK2TRPsrAzsniZQzVjs4Jm6+WyCUA8DgwwRWNt+GPj2px4/2o7poO64YAiGYAhGsPsmSf0Mov+DsygD0dSSJ5gpyrsmowoomG4OMNjxkiOH6fXFJuw/SlXg6mdMBJPV9qtTBla/b3IHn4U9J/AJxScAAAAASUVORK5CYII=","width":67,"height":60},"K":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFIAAAA8CAYAAAD10u2xAAABpElEQVR42u2cO27EMAxENQveI22A3P98kyopFkH8EcWPPOwWCwvWEzmUSdn4+Pocsnl7CYGP2cS1HGPg4P8fg8O98u03nuKReIPAP2DcHW84jFcCJG9OfhaA93itNBL/LMYdCN7jpWkkJ2DSSU9xcB+M1lILXjicWIizSQUnFzYEqiVEAS569RGIK+Mty/zd9pF0khqPa6c8kotgzGRs7yQYHtoIgOitaVtoJB0nywrw7oLkQoBIHK+FRzJIGtClaMECOsWKACM8kh2TRkWQ28O7uiFnt0mpQr4xSAqRPFIgdwOpsF7skcrYCu34DXlU3RE6IBDbn2kJkokexK5QrVijq+2jqTXb8rCq3tpG2x5m3r+N59jSjqPpScZHUswpMXQ1KLSL6bgJ2BqQODh6h4QjLtCG/EGVpdfFyXDRERV0L2BEFy2g10MeFqpehV1VwQMq5HoCUqshB6TCWx5ZD6S8Uh5ZDySUueuc2N1eNjL72ty9aJHpPamvCu9a2GUnSbDFzf4VfSB2fs9mbNBqRdevrDy2ry1z6mtnad5QX1tt2l/7BgqqWy7jxxvaAAAAAElFTkSuQmCC","width":82,"height":60},"L":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAA8CAYAAADL94L/AAABEElEQVR42u1aQQ6DMAzDKP/YddL+/77sskMPGyulNHaUSFwQgrp20jYYj9dzyxL7lihaMP65ZMO+3GsBgXz83o5z73w4Tc6wys+PwEAU1KVqRgvKJtGMQIlh9jpDwZbdnZQrWbOIqvMjUNuZxczMlpxHgYEqM4jOP1Oa+X/fNyEQfkZmTs7CtNJMD6RHZmDd7p8BA+ZzSw8YCSkdjTdtd6bAsOSLMjNQA+OVMxlYUWUGJTMliSkyg6pmpLPvxUyBCZZaMcPaylVlxktmSlIru4mSzJwMGEZMDWU3YSoEewZnxoh3JhoUstpNbl1nVlVArPYBhFlOjKjjgsH3ImUT0BTOKdEyg7IRCGy/zl0RQBtvY6w1BlrtjmcAAAAASUVORK5CYII=","width":51,"height":60},"M":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE4AAAA8CAYAAADIQIzXAAABWklEQVR42u2cQQ6DMAwEWcQ/eq3U/79ve0cFhSQ2SRnfE9XLrO2Etnp93gtxPVYkQLir4ZY1EAdxebRBHMTl0gZxEIdwCPfP9Q3iIK4q1LIG4iAur75BHMTl0gZxEJdP6PpQEZpGkScIZ6w6mNgIB3HxI8jTiVOPNVi1MrYDTBVkF/2DTffCLQEiareXbxAxvDnoIBk3zkM6eThOpk29CF0rEnXnguxAEcOayVZosR61SwVPdxorb42J1iSsgD1TbVo6jqiixjhoT48y863BI0F28R/Cqq0fVMl7DiWcAxLzrGKVCueAxDygWKpxwFaZnAJqk4JFcGVTKprjHJSYZ7Jhz3FEAXf+uuHayL3W/LodUdDoMPWh/kw4DXJpeOeZ9PE3wOKdA1+envPdAsRh1TGogziIu0RQ8/EP4vgRHFadoklAHMTlUgdxEJfbWfkXCIjLrXNYFeJy4wvTrVHzjnkS3wAAAABJRU5ErkJggg==","width":78,"height":60},"N":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAA7CAYAAAAq55mNAAABFElEQVR42u2aXQ7DMAiD42j32Ouk3f983gWaNQ20BWrekeJ+BvJTvL+f9oTo7SGRRSitOdWJMpNQC02oRqvVpohKqITGr08RDRioKtTDtpB1KzYhEZXQ+2wLD6uLaPImBBGtOFJEtMgedzPnNbtXDGZbE1FsLICtyKa/T1DkiaJ5Z41iZ2FXkcbCx8HRZoRJGpHtPWxGI7E8aEFEmZ1HxwsWFmMlDe+cfkF3ZHTrWu2CLDWaXtysUCYTx5XxwglxMIqExznTQpTZbLkyXviH3tWnEzrmDE8vqentCc0kDhlvGKCnfcex1qs8C+pyLKBQnJkjooGo0iNHRCU0aVMS0WpU+xP+vq7+T30aoq72VTOS0KTxAyLyPezAFAyjAAAAAElFTkSuQmCC","width":58,"height":59},"O":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEwAAAA8CAYAAADMtVzqAAABiElEQVR42u1bS67DMAjMWHOPbiv1/ufjbav+XkhsAvYgdZfaYjLBMGDcHvdNtt+aIMgFmHX6jx1cq7sxYI9nR7ETJHt61j48h5kBO8u4X+tAMezdEPACygMGJ9tMDDv2mdpsMWxLcsiIYVGsY0AssmSs284wkMUDfkSaA5VGJz5rCg8fuylg8sUwT+BH9phIsWhtwDBLaYSA9TGjvNMbVMk7I7P0VfUwrKS4ViiX1DWqChgqMEgMGwhYmt5fZqma0RJvdam6/bNoRdYN9YM7lYVqrMOPjvopP+jY7FvmjcQaP3b6gR6nJIKCLBIkvfbyO5zpexhhiXMrL7O/+tIKDJ6kMg5wGoUUD7cf7LgJislDXbtGNhCgyJOyux8MBCoytllEm81mUBNGK7S8qE9oVcVHFmbSJQdQuxgsVJOzJSAKMAFWqjTKmCZADEs4Xj7jTRATYAXY1jSPv/ZAnWkCMRl4XGjWvksJxcUvLLhrURbp4qRho26COHNAChDFsKEaGQWUABuqZvwBmJBULVIw3PUAAAAASUVORK5CYII=","width":76,"height":60},"P":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFIAAAA7CAYAAADo190JAAABVklEQVR42u2bQa7DIAxEGcQ9uq30738+d9VFpSofiiEGnpdVisRjxjaB6PH3TER/ZBD4ROn4r6WU9OW3d6hyjKvnvccLCbJlUr8uTM94S1jbMHPcHKnTQNquMKjaARaU9geQa4M0CpC/IuU4eWFtCk0zSJrwGxQpx2e1E0jD1rQ/gHRWmo10VjmwyAx5Z5kHKkTBcppGqjRvpMbahRsCtCTiSjjyUKRt3Nqo4QyoSq2nK1INorksUvnGXYsWTwEfSs3sq7vmqt2srYkQVZsjDSW2L1ZZ7AWsnBbavOda6BV9hFIm2Fo9je4EiJq9147aruhuiKdZWxUXtVwUaQftZIaCPPbezqlHDVoBpDiO5fCLuz+7gqToYO14IEeqUijS+R0e1qanbAJJ0aHYxAOJKvmEDmtvCxJ7b6xIrQoSVZIj44FElSgyNkh6SRR5P8iePClAEv/GCzmDNBBbZIeuAAAAAElFTkSuQmCC","width":82,"height":59},"Q":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD0AAAA7CAYAAADIO4L0AAABUklEQVR42u1aWxIDIQgzDPfob2d6//OlJ+jWVRRw4XvHNYSXUbw+7/Y0k/ZAiwCau3+oP36OmxtGJqa1w/tYyAgjgXbf2Kk5zareBXof6NEKjGI6eD5XeDsavEFjw4ZZTD8ANG9+y12go7UgWjtAAhcgrGJfnUMbncDZcQo8rpDBMvcl0QQGq9zXlst6BQ1eOUwGvQrHYYRtvAO4M71zmkPm8DZxqiY5QtIyejIwTes00T+LcdFmMbkGdk9kCDzBtczhzZVOVoc8hHc0lYhwgrxbTBvlNG58Z9nukJ1pDjjXVDKSwHo2VklGma91htnXQ4SDW8OMJLqyQed6fyNAk56TOdMFMj6/SKF7o+0XEy5TLFN406qWaMA8tBpopkDD8U6ZK7qDOKuTHJSKMNMO5RRZd1X1xinvUSQwCJSIkBw0Si4q0GeDhudjumK6QBfos+wLCNBLCgZKVGcAAAAASUVORK5CYII=","width":61,"height":59},"R":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFcAAAA7CAYAAAAO/hZNAAABPElEQVR42u2cMRLCMAwEfR7/g5YZ/v8+0VIxCbGMzllVNBBnfTnJkQY9Xs9G5EQHQV6MouuKj886+R1VWcMwEEC4rgFbwHOBS5jA1Q5rQLnYAnAJI7hq5l6NchM3C7h4rmf51gGWtwZsAVsALmEIV83Um1FuYlIDLp7b7BuUUczDtlVuFGkMHtnssgeNbtB5tU1q/WBbGcjJCQ3IF+AKyHXGmaguFs2KxZ8yuBJmxmLW0XssnK3SBJBx4rqRtJlRccoxmscLmC2Pv2q1Ohdym88VCc0boib4rSrBraZIVajFB4953j2NH0oXGUEKF+XeIRlpdSkmY7CqXOfqRuCmT1X2L0oVY6XXfm/wZivv3un+0lr3TGwoNxF8ByLKxXMJ4AJ3Bx9GucD1rBhQLnCBSwB36gRQc/xfsS3aTW+oDh8wE3v5CwAAAABJRU5ErkJggg==","width":87,"height":59},"S":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAF4AAAA8CAYAAADv7g0/AAABO0lEQVR42u2bQQ7DIAwEWcQ/eq3U/7+PnnpLQ5TSrE3Gt0YVIuNl7QSix+tZiOujgsAPvp8cox+8dmacz/WZ44WItjNZ/XhTR8bqG79H/1VW2Hvg/3UTUcfC4ymuRBrwmjgfAT5/CPCsgsvA38YyZoAHFlYD+CgdjVazOhQfBDw9eQLFk6SbWI1WSmLl4ScOeGBhNYDPUliF4qkZdvDUjHJ8z1Vlkb3N8n2vVliNx6a6U1yVYuhJQF1oS0+ZEkAfb0pApQ0cJqCj+IVWQRuotMN8eHxQs8FH7mgiiaKfuc9WOLxkeXBruIdHEIA3rTjAmywN8Kb6AXhTwa50HpvzlPMbKBRuVLxuAlyRvvpD4UHAr7ABIk4ZFM7VZLcKAZ4APOAJwAOeADzgAc8bShQPeMIBHntA8YAnAJ8z3qPOJiCllWVXAAAAAElFTkSuQmCC","width":94,"height":60},"T":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAA8CAYAAADG6fK4AAAA/UlEQVR42u1aWw7CMAybo92DXyTuf77wjxBQ5qxO5x4gmx910q24Pe7baiu2BZcKqGQW2z8UxsBLQIQUvIIqZe/M53hPiaqUl1MKth/XNmDWYICClTKo/5IzJlkplZWC7VfYcL+BgoPiOMMMEsECBdV50X1KPSAuqRQaqQQ1paC0p6DcsKP7nOdIJ1ksCfWHa7j5qjZbBij6AMquYft1sN4voCqabLl9bb8BlqH2jUJlQbFPTYv+WOm/lIOiyD5ZZcHuSuUsUPAhkUBMrHTTZQSU/FFjxUifeo8CDooDxHii6BIYVmrF4zy6HENsvy4WtFIGNXFaj+b/e/GOmCfxnSj3aRaC1AAAAABJRU5ErkJggg==","width":53,"height":60},"U":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFEAAAA7CAYAAAAD4GYKAAABl0lEQVR42u1cQW7DMAwLDf1j1wH7//u4a1GszVxLtmTTpwJFGpqlbIuKgq+f70tjbDRRMD7s4TOfvkPROXE29nYDhgUJTBnOVMD+n0QUVyUzrIm9QCENju/OVKj7HXGOJ9Ou+DUJO6+H3iR+OkFvkrEjib0k4+RwXqUcnkAitLGIrCkk4sQsxYtEZSwDJCJxroxsfqKU56hEkTdAImR79ZMoxV3nFKqYLXJU7TuQRO7obOsPcEj7WGw3D7HdopxtTFbS3f3w4jfogbcN5s4oVncJwduCXRw6EcpJlt1HeM0RGBeFOybgfXuf5jwZdJZZWags8RJvtkIVFhDJUbytyKKf0SRBlBI52eSlw/XDWG0RgQgOual4bSIYFEr/sCrtiyTtnRrZeSpwx2s7+Xqr8FqhStvI2hiK1zapOd+FNGTKXnK2t384SkoMIJGF1cgMJPLSg+xHtaWh2pooZTq1pYlM5905C5lQW5oO22nqJchwzLFdHwFWW9o8d2fLtjRIiYe2b9iGZE1/G8kubWmo9A4ItWj8MX4BHm9mFuy1tNsAAAAASUVORK5CYII=","width":81,"height":59},"V":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFIAAAA7CAYAAADo190JAAABg0lEQVR42u1bOZLDMAwTPPzHtpnJ/9+HtFusN7Z1gRJUpohpGLxAET/vV/GpP4chaHMigY0speDk998HZmQ7wGkgz8FJAWhmRqLDR1gyRrLxf8CMTBBDo+x3urB0RyC/hQ+sBCRFnw0zsjODDWSjcisSfHWI1ad27Z4fKDZMMnAdKQjgLkBix16bZUC9t2uvDWUWKjKSmdx4tRiJ4uGXTF9tPXL2jCaTa0NNBb/KSC7g1lRhJJUD+k0wMYuRWCwRDI2hxwUGspNRozqTIYDGyUtQObArjmbjH0awo2FcDdT44l6cYBhEKge0rCNRqcpkzPpXvQa+Hzmhs2F2MWFUiIlGIGJ3FSkqQESl8bx5Q1dagouaAGv98m8gOdgAZB6/3q0j1S7gyya9WDDjYrYeiQVeGlbIn7s3PLOpAwJKocgtoufaXqHrFee8QrfCJPEQr/+eznXoFbpEcxqv0G0AJAYCSru2V+ik5DWv0HmFbp422T2Gh7CmyEwJL7yo6awtVWJ9AGGAUzQ0LZzcAAAAAElFTkSuQmCC","width":82,"height":59},"W":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFMAAAA7CAYAAAAHFbY3AAAB0ElEQVR42u1bQY7DIAxkkP+x10r9//umlz3sIdsAscEGI/VSNW3qjO2ZAePn/Sq5dFbNEOgtCXKfLKXgn/f/LiQy7wPZ81lmMMcWPAW1boRKi+uzAa1C6Und3DyosnGKt3wvTqRGmPjAsHswvWQEMpiTkCyH1UvT0pPIVKzRkqjUa26S6DuPGnmnWC4VEI0CgN8X08/URaKZAqrBGw9vkHgXXFW9LgfWxKt0V0FrdY5KNAYPnUFAg7vEE5GJh9dRy2FKBdTe5RlBTrLENz2Q++Y6D/PSNeJsxbBSrVjcV+0guDumOAdUVHMDMuNgAVMbGtToW3fTDCwXpbjZ78osDhZcHKiQ9hEOBqe1kh78TAwcnnpy01Yoh4cTHdyQ3pQofiaC1EvMRCa1eViHazMjzdXPHslMHuZIvdCCldSBQEJxX2ZVt4e2l3mFTB7USKDNoz0bHaG8zG9y0tufmV1Hh0RKNaiFER0l5u7k2kC63LZYmerUFCSSiNTj0uK8q7KTj2Klpymbog0rPM0a/DBB77gfDRXd9jWTjQe48uDW6iEq74ddEXnkT5IW7T0gAAdSErsikws8gyEemtpcEckS3Gd01SgTmZuP+5Uc98tJtfIBaiRvPpwIk4EAAAAASUVORK5CYII=","width":83,"height":59},"X":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAA7CAYAAADYW8woAAABN0lEQVR42u2aXQ7CMAyDcbR78IrE/c9nTlCBRprmx31ko92+2U42Fc/366GxHiYE+wDRYX0ufuONeXjj2Nfzr2RwVsdx8xr443zLua4iSuep+SypehTSApRjIBqQt72QCYa3gpD1qctijQGxWnZZx9LsaVlrclM4bTFOtNc/CsIUm1nlJi5LFTtlLxwADfVBzgoa9eY+vZOGNyA6LMTqVdCKP3VUBsQOFrSOwaqQDgxq27QAu7ymWAF7QRZLDM6CO2dUg22NP3GktBi7WdM6Vp6qIQ3H/0JVLKGC4JAt6PZdSApyBMSJ7YAF3xyrlX1Z7IbFFNZSkABtB+QR1pmrGbJvAy4D3DZfELRPenhId8+ilgqCABVT0GibSUFOgBC4pU4KStQLQRYLVNDIsJaCBCgWEKbtQvsAwqc09eWi9RAAAAAASUVORK5CYII=","width":72,"height":59},"Y":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEoAAAA8CAYAAADBqyytAAABKUlEQVR42u2aQQ7CMAwEu1b/wRWJ/7/PXDiCmhZD7Hgs9VKBG21mbaeqbo/7RhyHIcF5ofx1nYlP/4nMtV3Ic+b+0Hr2g4T68oGRuSLEO1rPxzXtF3cncqe3Sc9wahTFfB6xNuDZK6FkIgqisF6uRmHJbCaIKlSP3uXqVKMUSVRFG3kF67UZKaxZt1MkUS26GF0voVCzyfMfrkkQ1cx6/m8nWOdjyepEeSWhMhIniEpwJrSmtlNWorRyMVchmkTXKzwetJyxjNlpbOOs8SteRRLFUaYQUY5QELXesGpd34FXIkpBv3WsB1HhBDpCJSkFCLUoUeoilJJN8KJGTSBK2A+ilhdKCAVRtalajSjPIJSwHvZLK5QgalHRGQ8GxUaoxkQ5QvHZT/54Au3jKAM1n8cbAAAAAElFTkSuQmCC","width":74,"height":60},"Z":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEQAAAA7CAYAAADCZyymAAABaElEQVR42u1a2w5CIQyjhP/w1cT//776YuIlJ+ohDLoxEh5FTlnXsoHL7VpyPEdNCMYAwsfs/W1GiAcwkjKDAGHU6MgIGQDI6ykjAckImaouEjmmiRwMVSipTBmqAzJKbo9OHgaOOHRSnQZMHXjKIYCpTvOAGTCt+Lbcw1WplTiDJ5L1EkCGbNCQsugBhCXuOBSKtmEhCL2UYc+CXj58Zg6hl48/AwiVN225pkfZhafrP70C8Q0Qrt7Uyv+sK02QoqI1Qf8ALyVEGOYO7FRkRlbdS4w2BBfRJSMkOiCICgg2rYtMpwyjAmJp6fkxZQDBbo0pS8ogwqujKuI5oBIt1ZFN58pWJnZtflfn7z2GR03r3AR+0IYRW5kI4FB5Nu/VrIG8U6798WFR7zGI/hyiqD+HmB1dmCW7EJZevEwXPgSG62KlMYNIjQPWCqbShuBqILyoDJTrIYhEDaUIOboLhWhlMqvuG9xt7ufiUQW3QZMYAAAAAElFTkSuQmCC","width":68,"height":59},"a":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAA7CAYAAAATgCjWAAAAz0lEQVR42u2ZSw7DIAxE/aLco9tKvf/5prsKVZUatTYYMCuyQHmZGT4m3B53y9QOS9bOpq+mz5dxenvmDwa148+LL4xuL6jRlilrhsgApKhZxtLT/oj60tkU0pSWDQ/0JyAG2MWyluEZ5mVD3QWI3mtPJoXwAiJCnW1DLQ8gdpz2eAERZdd2odZMGeIXIFayTL2AiK7j6jxUQBdyolIoKxARtT1l2ahNNPJKb5hC9CiZtl2HKIVm/LVAWeahUoXa45DPbru9KkNetX0d8s3MnvxSFfiIGk0BAAAAAElFTkSuQmCC","width":36,"height":59},"b":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEoAAAA8CAYAAADBqyytAAABf0lEQVR42u1bQQ7CMAybp/yDKxL/f1+4ABIS27ouaYOTSUgcYKLGSVx7xe1xX+o6vtaCoA8ofb0YLtN1yMaN3+8RcNEYBNAXBnLmw0GYoZF7FEs5mgDVQuksgKnF1NPBoIFBHqRh2WpIVUZZgV/ywFO7zCgfeOmo2eIPtYUhaOiScdE9zBdSQBCZUVgW3k20/BE4mClBhJA9MGITWmwW1vJyZ1RagFp1FIKBhFlOqBSDzpdeRnCa96ZsKQxGMEqTlZ9aNfOoHhOiugfZggVcCRfYLF/19qM0a3QlA5Jbiqh9JQoW4HkPcf6nkL30LGiOCd5U9++RYL0CWRlFYyNLMiD2SlZHNXPq/aEkBAcjlHlU9xPRAlCUZ36sMZhAgkfpoezh/dKrgIEkXLgasZ/6fh3xuBguVNk1MiqLkwmr58zTWr91xKNzutcRD8epxwgYPN2DVFNSnGQ/2NxRKT98U6mr51mYK5OzjnhUj+Iz/dBjs1TA4ABUyYPkxt5n8j0BvutPLvWvmVcAAAAASUVORK5CYII=","width":74,"height":60},"c":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAAA6/NlyAAABI0lEQVR42u2aSw7DIAxEPYh7dFup9z+fu62qVCkBxx/GewTPYw+JEzxeT9kpmmwW38A6uF4vrJHJPaeiH2z8eQB4H9AS2DP7+iO55XpYdzUteABDhNeSpTrKe5jAdYA1CjCocJDrJHNJq2fSaFoDGUcms6LCBC5091JhR3URBfjsIKDCwXuXPSyFxzp3AuvkWr0TOIox6Ur4FrgUcbDXNHhzKmdMJviy6l3yh44kMgsw/jTB0+FCc5g5Y3FfDxleS17CYt3DSAiLrKalK4Tphiaji74F68rq68lVRaQHDxgZDy64dQqFTQb2PckDR5rXQ0R7X247/dDCEU+lUQ4VHgBGJZX5J171XmYPV/ye5KkwWNIbAIMKbwasVLggMNjDBLaJN3QvMQA37mpiAAAAAElFTkSuQmCC","width":60,"height":60},"d":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAAA7CAYAAADMzlLJAAABMElEQVR42u2bMRLDIAwEWcb/SJuZ/P99SptJEwdLGHGicWd87HGSccLj9WyqozfhoSjeVMXbv+RN1fb2cbWdqI/Y3nZyQvdaRbW0T++C7rSXLNt+b621I2gCdiDPRTcs7YjjJsuhIn60WhA0F/VicyN5VnDYMaGZQY08arYnQWODt3iydHSe5FNYO6K3J1sf70E+Pe1/xG8lVvn0lt3FW5EfFG9BpzoWeO8zz86vwLMJh5NWgbeg+MiyxkpBF0l+tUXkrHjqE3UMGVZzVHechEABzCSfOfym2/7uxWKkElSdv0iTQKfgdE8r8pM+VKYIvq7SzanbfugHSQRSp15pfReFsr2weIq8k3gCg4qJ9G118tSeL/GxLiryqvS7WsiNime34+0uWObk/l1Fpf3XeANkcS4Sv4KUEgAAAABJRU5ErkJggg==","width":63,"height":59},"e":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEUAAAA8CAYAAAAwoHcgAAABQ0lEQVR42u2aSw6DMAxEM1bu0W2l3v987rZFtJAQEn8mexA8xh/GxuP1LDzfR4jgGIoSSSl1B8gnGDh8J2149q0IsIXy6yI4/eA6Inzw5+bKRJscjnTKMiIcjCjJYZVTy9iEBkI5l/GRHUpPacQNuUGtQ3EXfnVllrdYeWZBSZ1TYOzL60oo3sswRkEJ0Y+MbPNDA2lRCpyGhV5VimZVRotSMsDAEZR0iqCbPwmKFvueClYqJZThJFYcdEsqkpusAKVSgsGRCUlMvQGSBS6bWq9A1chIE9mM6ytVCyvUU4vfITnY5icMH1P5pWYHwLnPpL/kVhjwoEgOwyZCAX8Ig3m7QiAcm94OxSsMsM0ftIaefg4kXCbuC5/Ua+gINL6YWn00Q87hGjrX0LmG3r3ZFHENPYRHyzV0erR03uL0LfRTds4bjJU5MZhH73IAAAAASUVORK5CYII=","width":69,"height":60},"f":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADkAAAA7CAYAAADB0CKOAAABDklEQVR42u2aOw7DMAxDQ0P36Fqg9z+funZogNiIZZOhpwwZ/KA/Zbw+70P9tOMBJ0jumT/f6PgfTJBnwHZXQxrSkIY05ISDM8gcqUOVF77TkrvCTnFXCdg2q5Va7LIYTTy0Vo2CiYC+hFBYNxbNe6WxG4XzHm4CyJ2VgZxZ8K3xMLVnO0KuAMJsSBSCZKUloRyTFHCjkFRwvZCUcD11kgUQvZYEAVCOuiu1W1qSNKQgpJQU+S/xJLOOc9WS2FiOLNNd8ymJhxK2EUuRuJo3QkiKLJE/ctcWMRZIkHjCi6ysHuuayjZ5F0tCKSahml2hvCaQ1V2hvPCBeoMO5dUdlPeTUF7CWnc1pN8MrO2Hv4l8JS6hTuqRAAAAAElFTkSuQmCC","width":57,"height":59},"g":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFcAAAA7CAYAAAAO/hZNAAABeElEQVR42u2bS27EQAhEXYh7ZBtp7n8+ZmspiuQZu7r5FCsv/H3GBQ0YP6/fQ8YxEwKe+Wk7Ttu4cOyn+z99vnjw2nS4/z3oDosP94VkQZpbziC4wz0XwpHPc/VSJAuz4UJwa2QKkSBX/wMXDbwtskC2ITnrFsjWUBKQBbINDUBLINvwvJUK2ZWNUsqnaeHigjdhYbkT8ty1tWUI7r5iPu5kCyrWXGDjN3Rvt+6mX+RIFohfpqutwzu3PJf4snxwMMPO2gIaeyp2DoV0zEGhkiMHBjKNM1UGjiwjTk5cBuLBY0oGXSfedByHWuujdVE9tKP+8POdwnUmCYgsX4UNWS1FZbhIBDbNFI4l9z5U9mIfOnwXWatiHUedKNewjQDQfUhExXJiZc0bDnVsb6lrhbZAViQLxDjjxGAVjSQBCmjJUj7XHzu8+7Lhvz5RO8E2dOhuSXvdh413Qp2IJjLlAlrXc/HAg37zVycyxAotfwVXcGVF4ZbMtd974jNGbQMpDwAAAABJRU5ErkJggg==","width":87,"height":59},"h":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE0AAAA7CAYAAAA+cgdsAAABQUlEQVR42u2aSw6DMAxEccQ9uq3U+59vuqpUIQoNcUjiPK9YoIF52A752OP1XIi8SCDIj3WQ99TXtRXeX6y1Dvih1VqL8gQa0IDWKKyGVprZPJlGeQINaEH6WtGz06Qjp1GelCfQWvU1q6lFplGeQAMa0PoeDKpP7mfPNKM8Kc8xoGnx2+nRMtm+p5yaqhqsUNyywps2N+1trMrhgXLOPuutp9mPrMk17qXTXXamC0I5xr10hhk9/z3ncGbcS2eYAzCWMRoeNX4vndCnhmqMwFstqwjYSn9uFWWT10t7dQZmN2l1W55yNKgIsM6gycmcIkDKnUaVGFQkUEfQ5GRSEWHtQZOTSUWFtQft899TatBLZ5hplJfRsMBYuQUa0LpuBwlY+ZqUJz3tnqwF2oVFBaCRafQ0oAENaATQgAY0oM0cb/GWOQ407l9bAAAAAElFTkSuQmCC","width":77,"height":59},"i":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAA8CAYAAAA34qk1AAABRklEQVR42u2aQQ7DMAgEsxb/6LVS//8+eukhqlKpiQ0sBEu9Oh0vYMDg8Xpud1hju8maAdXPL8WSBXvsYWH0P8984/vwMQuKg03VGHi7akWzPoosZr0iGOEPP9YKPrqH1WBf/imCGGysF/wMGe9RMF5VgyUqZvHRGUgsdAkXUDU2b6rMiAkOK0HVEW7KfMUA0t0svX2UCRCrQSnVW32PgkGp7jA0aJ2FVrSCYmdBU3X2ViQMmvGunDVdrWDWI3MxbZXrpjbnkfQ5At7VSxqVJeh9JH1z7J/ghQhzloDDjTgEqhQQGU2Xrhsh1YC8XtPKlmkIhISHoqic6+IOHQZUql60IuCRoiAJMiYxQ6oq2O3OBm3QBu153Z7XTfjiTauy9byuspRqw+FjFDO7nvO6of48Aqt+V6WFJFaYKy1Es7qorKibn74Bn1g7KupmgBIAAAAASUVORK5CYII=","width":58,"height":60},"j":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEQAAAA8CAYAAADfYhweAAABVElEQVR42u2bSw6DMAxEM5Hv0W2l3v987qoqoh8ChIA9kyUCiTwmduwJuD3uReM9qhD8B+LsQOwLjCkUBJvP2nf/uN9mF/zHAwj4sX2vQqYT953kUyyZo2SZAggaZZcOzlLaxUrleNBMhTX7EGxcVmfAwYiNmZ/5ghGCakoQrUCcAUILECeCgCUgHhwA9sQ9a4SRene6VNwxgcA/IC+p0aihZR+CrF9eHTMBERABGRFnKtuEjyru0nbNaqdmrgtI375J2qAaRS0YnWWuAgZXS7vh4ksdRD5MR97K+RYj2IGUKzelrMQ0q/fAgmqZ4AoBMxCUi3XhjU0BI6rdVIaWMatBZvcJQKDyn8T9p4LQAwhkQxSOTrxqGQEREAHpBSSV4dQz7Trr+bK5QvBj8s5kfNfGh51lSdUNRFPDsQaZOdOxCOvYk0wRjKt8Xf0vM+z3kBRx5AmHrEAjui8qVAAAAABJRU5ErkJggg==","width":68,"height":60},"k":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE8AAAA8CAYAAAAngufpAAABoklEQVR42u2bwY7DIAxEmcr/0etK+//fN3taqaqSCIgJYI9PlVqh+jG2sUnw/v0psj57CUG/2cdnfn2HzjXpsMbKxn+/XheO8gBojeFgDWYIWzhBxMmOMYDqDsPWOxxxAitMWFuj4635ESe/3xEka+HVON4CARXreBWspY4q6NghDlxnK3gcJfsBG/dYyNYUDDo5yg2BdReMFofhsAGIVG3p4CwjAvv839bgNBzyG3Y/GF8pz6tKRlFZ12AAnvKO0o5dwYN3Tiia56U1Ct6gSit4N8+4gqec97zqBE/KW6e3ZfLzW5P/dmNhSHl+u4QsheIMHm5Mjpkt1G3Sbu4GFTPgeYUIVgvZmfAecW40fCslTqM+aGOwKjyoYMQFBa8OQ5NkZ+UhQbvmmvPSt2UtT0mVBKN19qjPpKr+tlTzvKJh6JQOR/BupCzBU9g+oj4KnpS3Ru7T7dlDvW2m27OqQ7M5n32QWXm4OZZisAe3OXsYGu3hbqwwhufuozCLfKPvAB4trxJkuC0LoTzsXjhMkPqLhm7PdHs2J3RNsHw7DFml/QEkDVQ+rlC0/QAAAABJRU5ErkJggg==","width":79,"height":60},"l":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADYAAAA8CAYAAAAt3km7AAABFklEQVR42u2aSwrDMBBDreB7dFvo/c+nbguFtHH80ciTZRKIH5JnBkd4vJ7F8TqK6XUHjCf3efLcQjFGA+PFd+m8x6YCHgvsNQVwZVUcClgFKvMnHJzAftkcM8AoAIvRikFI1a91uY1UaFGMKouOWDy62bwKqQWnPga3Bj28otbJNoT6dA/1vlcdbNcCxoCTyTDFlgL9s8dYyl6nVMhzRUEw5klwIDBG319bKcYdf0ogi4cYGPP/WDAw7KoYI4Mh91hAMDjYMeMQLmDYUTGmFUXBcCMJQGfFqBw5uqoaokeO6BA5QkSLZuQoWuToEDvI6dYuVOMQZwWqe+QIIuPU8MiR9MyobMUyy4qhsiC14WPMyNHCVvIGzKE4AXNSorEAAAAASUVORK5CYII=","width":54,"height":60},"m":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE4AAAA8CAYAAADIQIzXAAABaUlEQVR42u2cXY4CMQyD66j34BVp738+7ytaIZZOm06TuAcgyoednw4DHj/PpjN+TAgErrXWWB0cpbik8CwRMEpxag5TByfb2lTXZFWBi6BSKS4BOApcjE6cAhyjqdSqKycyuHBqU1cVOIELM7pYIgCoAo4XAVBWVY2rt5aZ9tLaVt2+afQPKsBhADihaOxUHJ0sxRu+AK7Ox/4Ew0aA3rA/5bPUqq8B+U9AOACAU317l8+0lftAsHZYPRyF+20+mAH3+gEcVBIOrYlYmYs5tHp+YfVdNl2VC3fOcSc0Fbd8uqNVkGhlw0iNuxIIrcgTs74AGtp8caYz9NW5vAXHw5Q1C5weufQNne/KSHD3ZemS2xFsUhgXL//0zKVvGmLTXTv1G2BhYmnnKR3e9MPpWOAQfajWUy6BqwMOOwfWbIqDFHc/cL2SJMUltqtpjYoNDlJcEeB6tTwBOOjPDArYVXOcwNUGhygN4hcQelP0SxL5+AAAAABJRU5ErkJggg==","width":78,"height":60},"n":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADkAAAA7CAYAAADB0CKOAAABKklEQVR42u2aSw7DMAhEPZbv0W2l3v98000X6aJRjSEBjKUs83mZMWBsPF7Pln30tsGQQvJzSe5LrSTLrs4gGUnFUnJnyHBWXVUSF91Tdi1IAWTI+VhKZlGxlPSYCiwhtayKsuuNkKEDTimZSUWpkmEK87JrJqu21tpw8A20tnZ3MLfwo6dLS0htq2Lh5zGLXY+gtLDzcBZw8MczOQvcneZHTO7JMGqehHATimeQbHnGF+xY/Kt0uAuGMyUheCGcAOJwuU4hs4CQFgPaEZTKgKeKaRQDNF4ymU2J4diisKxdtQMQJwBFdoygJO5aNIdrcXgo67Y4GOG2kQXFBXIdcbkbMkUAKiWzqFmnJCN2y1cgQ1u2Zy4CrmpJVgrJChnuoD2zKhkyym4xJ9+lVD7yvynoFgAAAABJRU5ErkJggg==","width":57,"height":59},"o":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEwAAAA8CAYAAADMtVzqAAABjklEQVR42u2bwXLDMAhEtRr+o9fO9P+/b3vvJKlkCwnw6uaMw1gvGMRC8PXz3bTGVxeC68B44ft88xmrArMPADAIim/u5YCd9MDaTY9r1cHtjGGs7mHe0CAPm4fHJwLDP9ej4CgPK+h19sczGAhcu+m5JYL+jiwLlUaBji+2OODvXjj9SiJg0MWTD67pAK0EhoUxBCqNioH6lCWxCRRUfBf0qFPA8AQBcQWAUmqrl4eVgzRSGpXetGpJAVOW3K3xu/UO+uGgjg1S9VKbPWixfXeTryqJJT9ID65Q3N3kcrs90HkKE90lOthNqYdhQiKaGUEYEUY5AtqCnuJnlF8OPiMm9bqXmfZpTRDetWnFOj/wtmkFYGGnTUsKCqcawJYIFhzsImObjU5ZmR6Z3ham90gipNswS0W1gp5nx4p9SU3vNCmuAtYkUV+PDazcfeoaLY/5SpYB1zVWniPopwXX9UeGnDOufMKMq1fBzuxT1KdH0Rl5Tr8VaXhAwIK0AU0wzgNj5bFPkwflA5ZK0fgF+vpdIv9GP6cAAAAASUVORK5CYII=","width":76,"height":60},"p":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFMAAAA7CAYAAAAHFbY3AAABW0lEQVR42u2bSw6DMAxEmSj36LZS738+d1chhCiQn2Oelwil5GnGgUmq1+e9UHUqgaAdTLsxhh1ct0pjea7fM+edi9sJ6cSEbee+vftLx3ILcguzh1qMnkmdEkY6sOCVqmlLoUwKmMB02C+B2ViZLCQF80zOoGlWi2NzFqC5YKqiLfUUi6NMbO5KlbqaGnmciJ6qTDUY407w3Dw6TAUAer9fqlKa36xmsfkaqHVuAxYV5hqUnQSgXu1rRpj/VDps8Uq9wwAH49qFXmu1YGqCcMPVBl2OFtCO/GTNDwCpBr+hKDDNa2iSA4HU6MMSaUS8X3mC6qxE3YUpJyu5OYAY8nPS41vCVDA1w3MQDrNt4dMFwFzYAxqpTg4hRFSmgInVmxwpFIzLlKkHW17YnJ4Z668rVKHVgYnNfaoTmCgTmOGtDkyU6UadBsxAylTU3oky6ZnAXKIHHsCs2De/8Rk3DmfDI5UAAAAASUVORK5CYII=","width":83,"height":59},"q":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD4AAAA7CAYAAAAjDDn3AAABUElEQVR42u2aOw4DMQgF9yHfI22k3P98L02KFFG0/gEGLKWLtB5jzDJrPF7PK+OQK+kYBefnd+xoB8/9e+HR+982+UAP0ENzqhwfGMgE7uVAQ5WzAi/wWykiB+Z3+ohDA5yRSlm2HMdOcO3mBTubFG5uIEJsdfwAddnCyqYShj9pQA8VQIzyj9Y7QQaijcWHDycXAl4NDDrTRuVgFCNjYv6a3BQeSGPRAe+yEZ4tKzZEGosWjbPgVNjeiOjVeYKcbB2RwiA0sn1J8QAMLXCcKCJ4OBDKwGx0bqHAsVA9MZtsxCmLIJ3yYNa+hNfL8J4KMqCMVpUXWi5Ec2RfuKFjM6/j8FYdROlNjRmve1Hxff+2kGiOoOGlnGEShh2fnBDZwLjq9ERxkvDU3rbN0cbJl3ihrIrrKkiBG4KjIh5ERdVWD7bdUREv8HXgzAQepqy9AQ7KTQHjVN5kAAAAAElFTkSuQmCC","width":62,"height":59},"r":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAAA7CAYAAAD/9U3AAAABSUlEQVR42u2bMQ7DIAxF/RH36Fqp9z+fu3ToECkpjQl2npdkCJJ5/HxMIHq8nkbERQNBbPSve/9cdbCtf93rpHxGc1AGwFvgZob/kYOvChmLADCAzwpd1HZ5wEKnWASAAUz8DXgFL5UVmwMaExwWUQpwVpsoqWAGA4sAMIB59c8HnKVzqqxg6l88GMAATu6xbtftL+4Czu6xvgHasyg4wwpOB8DjwYHqdgAXAU0VEQy6sVqLnQz7Tud8whm1X9trchWiKMAjnfOiFjI82N3qhiYM+C78VnzyshWPr16lFCV8Q+zOFrFERdMX8TtVLQ87OxOxeTT20UyRubcEqlFGsFGAdXfF/gpYSb3XVxFASwZOA89ptmpHq4iSC4Gs34PFuQo+uAMYwGM2IAATAAYwAeAKgHX3c8UoGMAANv7HQMEAvjNgGf++DccbR6IlIlt9EdMAAAAASUVORK5CYII=","width":88,"height":59},"s":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAA8CAYAAACZ1L+0AAABTElEQVR42u2aSw7DMAgF/SLu0W2l3v98dNVuGqmJ8wHjYVMpstz4jYEYo8fr2bA4W5AgFwDvmMN3Pu+ZK7N5x3t/x9vKw8+vDgjlK+O0cS7/89+ZQexZ5w+AI7txi2g+SVTxiByghpVJwpoVgBARDwAAdq+3AyAY2pIs3osQhJihABCNJFw+EetMALrqxWb2AMIQIQgAhIxr9FBWDxAegLipACAaSRgAWGIAOnG8OjoQejoRoj8mVNEDsoKYLgR5RQDCG/CAnk0xFIileINUehA2wcnWM7+73Rw+PBim37Chdq3TOiabqZdTlTxgdDgCQMEyOQCCE7Mh9DxfQQg/GYAhzitWsOg21EHRCu0qUY6OEUwJxdfWdS4D71JVaB4wEivl6MalPI1VeAAAMAAAAAMAADAAAAADAACwdAAoSeABAGiUlRuX8q3Q3cUbci4qIMSGU0QAAAAASUVORK5CYII=","width":96,"height":60},"t":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAA8CAYAAADG6fK4AAABBklEQVR42u2ZwQ7DIAxD62j/seuk/f/3udcdB2kgCebYVohXO1YAvL+fq9uwq+HYDcWISV/OBSEA6Pc5BueAB4qZlbROtvNAUUFxCFSU0piFYtRCBhIvVCnIfoJaB/VEPfFkpeD53rqppJpy2oMTc2B2Ldah15P9qgXEsUpFqjQdAv+8t06N7Ar7MRsU1aUns68FLYjZlGKRjh0r7cdsNcXgWoA6iiRQzAbFxFGOkblkv4pQ0em27eAFHbb1tjgQqJp6EOqJPw1dusl+81Blmlfdzlc4NdpVUwhQG16oTGohU/pBXfoiqHLxbpW37V6oUmppO1+lsbXF9tFh5g4oqqYSQ5WoqxsboSf3bK5gVgAAAABJRU5ErkJggg==","width":53,"height":60},"u":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAAA7CAYAAAAkTufiAAABkUlEQVR42u1bQW4EIQzDKP/otVL//z732JXaqWY2cSZh4D7ZYBwDJouPr8/x9DHHHsMc33KMAef3rwPdmEBBLtzl8AMEO4DA1cCoLowpYNjoMagU0NlFvJTs8DABhdjhyqlLOUQwFU8B4S3mWDM98A48gQmP0wRk7w5ccfJeJqD7xK+CwJVWvZMmoNItkqsDUI0J6GivtZ30lXJg9eS325wAAjcI9ewwqc1mIjFTvSlIbLYZXAo4SI4BcWXsMOH2x+CVxMEiMfoqnSmIrFIuJjzc4AKwV5I/G/d0zFnwZMiT9Y6omDOpFODcGiNPr79izqRzPkUghuw4ltSLoGAPFW4zBCXBpMOYK6bd9BrkFc7QmHbykHO1JCgUynDdskQGoGjcP0HwaANFJoy0ycuCO9Yg2knQzVnCKqbKcj7i9hgdIEDsP3KFtt7yXWkdy4F3sWMWVHpuYSza1ovd1rvbeg9/mLutV/s2kX6rtId0rv4L0lz5YnTWbbbCK5Z2s+2sCbfZa6+JR/8lsHxb71i5w+0bsStpFXvECggAAAAASUVORK5CYII=","width":65,"height":59},"v":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE4AAAA7CAYAAADVRbxvAAABj0lEQVR42u1bS64DIQzDKPfotlLvf7687ZP60cAkkARnWakCPDb5ETxez0Ybt04I5kwm/6etNXz5/b+BjJsHWAncZ1ZdYZhSqvfYV0bC3ZBtR0l4t1dNC2CUcCQdgBJsPzrodFIApwEB3QastBq2PPDODhyiS3V3KgU6h2QARQcOFVMuJWBxGIfqSb4SMDvGoULk7wmckmHr7riyQDU2a3wZNytTPYV93VGKZRs1q6S6CzzXDyeLDqob5etyffTCJXJ4ri8GPdPIDMSXc91moQSq3MIZQLXcQw+UKWiASoxe3YcEzAg8rwsMfJyfTJTkTZkZYDHB7DcQmXJNyl0O62qp1ZrClt/cPmTAZcMxvUKQtA9Z4jhkfT4hBh4nshzdSvli8GA66v2lnutL4Qsfq+txYB/CnnE6EJ23E0vnuMEusMtFW+YcOJJkdGiOJBmMJOlJwKFIq7DE+7gS3f6+OSZLK2EJWBIHgQuYnK8GDi3uSBKMKjdLMgcNyNDLPVGOJCUZgtspV44kcSTp8GLnHydcWS72ytWzAAAAAElFTkSuQmCC","width":78,"height":59},"w":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFMAAAA8CAYAAAAaEIaPAAAB70lEQVR42u1by24DMQhkLP6j10r9/+8jl966W7/ABhtLOSRKot3ZwcwAxtfPN+XSWSUh8A+m/L4SzA7Aap9fBWpRBpKICJ3fT2Zm6OuAKQmqv2x+HKjs4Bqkst8ey0zrGw/NVnZ6XdKhFBJMA0m2HWyms9bW/ZcXSiKLhQzz4KDNgikJXCxmhtaYM2AiQRwT7WLEQpxmK3mxFsTDeznFVpaFrAT11T8lmTm2J+IFvFBsZQNWYuJ3Erm6xM6yLxofpEtg2bHjaY0M8SK1SiAf7r4mWoKW2lo17FKS8AFAYvL/YclM2Wj9RImBW3r6HIyRGg/zKbmpqAN2knhWRwMax3tgxUwc1jxr0bRdwLKz0N6hEVs1bfVaeXOIe3EvGLj/P6wttxVwjXRtdw8Ih4a5aEUUT1JdO7xWFzBEc0tiR420N+2HjSBixgFhY7sXlcKFLByxGXFX7rx5T4FYw5erbill8dSwtufuYa25OWAlzeVB+9WSFwxViftDVRLNJLCiI3Cp/ejyHpDcNFIoGypIIawtK5v/N0AQebzaWwISGi8M45RZo5EbgUILNhSIOxOQ/KMDKUcKLz6V1rtnYtEEhuRB1Dzu1x3mT0VcLM7+yD0zbm/92uN+LpjMxu1QuqllHImZR++ZlkkIKdovP6n2AeedfCuGQyFHAAAAAElFTkSuQmCC","width":83,"height":60},"x":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAA7CAYAAADYW8woAAABR0lEQVR42u1bQQ7CMAyLI/7BFYn/v89cELcBo0lpUlfabetW13aatMP1fjO14+aCYC5AfF4Rz0T29cs4zMzsMtgBPr3g4B7+8rEH/TFhkm0UIBsY4Gr9hUuMjS2HMulGUQwVAWLSALCivDIYhCbKQmcPglbSi3oQGxs1ZzIIfwQBSlYnr/Rdq+ccBqGybKIBYhETRpC8IA8KZNBWmbuiWDCD2DizZ2YUg/WNdJDEgiS2vTlXZBBUcl1wAvwkBVE8feBqDEJ16bnM+T3IvmFBvrVJY/Z2taso9h50nyAvVJaqSq4nAELjTUJkF+2VrI4iXZxtFIOUrOZEY480tI6piCQmiY3JzAsmptAx4CISQ9eTq1/+ITDVg9DVpDsXyaAopjC/BkBoHO6RxSCKQTJredA36hBAgR60pczEoMR1EAXQvvvzr8l/AC9TM/d2RpawAAAAAElFTkSuQmCC","width":72,"height":59},"y":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEoAAAA8CAYAAADBqyytAAABLElEQVR42u2aWQ7CMAxEGav34BeJ+5/PXABBoVm8vPxWatPXmYndRPfn48b4PgwE60B5B1DHhxfWQkD+5nlX5qMfrp261zEIhJ+cwJXn+MCPsi2jREbNHQ6oWCrVSFDl7ZNVUd4NlDosBhUr8ynZRgvzp6IULJ/CrHxGoRk3ozxj7WUJVBLCfoT5AlAaZDtlaMxR1EnoRstSS1HbA90W+d27hnm0ABbWC2JzSxTiW3MKRQ0ApUQrWfrywDu3MOq41W5sRZ27lzX+H86qNwO6TfqCXu33MXXUZlCqthqiqEmgdGu6lWXJD2gI6zVTVCb7ifNRTa23pU+0yv0Zp4ILg1IHRXFaeLH1BCgUxdgFSoBCUWFVpaig1LnoxHqNNkCXzAdFYb2aoBxQRYrPF0K/HxKggg0jAAAAAElFTkSuQmCC","width":74,"height":60},"z":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAA7CAYAAADYW8woAAABaUlEQVR42u2bwQ7CMAxDcdT/4IrE/3+fuSLEpG1N2yR170DlvjhZPfB8vx5ax8skwRiBWFwXiqCTh2+iRx7UdfgmekTQncOHBBJBPqs5+89fTEXQsViUQDU6H70Fwi402WQKIgpFL5MePnMEWbhKEAeW3jdVjEbPSoLObhjR5yAG9gdEGxSjeQY798ZegbK0ZUQjqIIAPPtbbScaPAliYWG4ssSYmRYPgVCxjK4KxML+cnmuajsabw9BnpMrMj21zzLprLTgzH3QdpnXw/HCDNUSU8U+TrYggURQrkv7dP5k1ZJQ7ybTKt8njygxdJQZgmdgmJmsbpPRW4ZhbaUXmReKCULCWwdoizdElVg8oeDR5rHgdBnxQbkln3TRQVF3sooEHkFn4vj7+ebxJZUDx+aFYkIBkPH9IKjNHwuDiAfSPB2/YgJiG9Ey9E4aBYUJ85/VbMJwVIkxsTCY0eaxe+xT+VJfudjd9QG17ksR4xMBmAAAAABJRU5ErkJggg==","width":72,"height":59},"and":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAAA8CAYAAADSfGxZAAABQElEQVR42u2ZSxLDIAxDI8b36LYzvf/53AtAmjQG/BF7wvAiZBnw+rwPjuNoRHAOQquBkBMAIxioAOLK0IxQ5OF8zaIW6WxEDcGEASSL1nEPSDavf0d9yAxiFrTbMBmogikC2UGUM0tEjtjeNj01vEmgP41BL4RdIHbKvJd8TYBIwHM9agMeNYMStGn61RPdhhIpWY4U+8vgL5lsZBD/dsxdMIzYiRShFpVPikFARkWoZeaR6gCigtBZATDDDRUqVw1ULp/gI/DiQGXxlHflG5brYPbRWPUargbzwaMxySMszQiLTA80y8lVY9UNFbyV01bxDeMqCCyCAE+wm+FCnufQLAnCEITH845digAV4S8TsA33oohIaXObItJAapljc2SPAEFshtOqdZksnwRhDyJ1nqAiHoJIpw4qgiAIoju+aBEmSdhr9UAAAAAASUVORK5CYII=","width":66,"height":60},"the":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD4AAAA8CAYAAAA+CQlPAAABCUlEQVR42u2aSw7EIAxDccQ9ZjvS3P98dDuLVkINvzjuvoVnhxBS8Pl9S8bHStLnDrxlAK8PwE/wYARHh9uNRYjqfD+sEHXw98IskXozwRnJ7ThB6mbhe0UGG/hogbrFy1TAtH8BozhOF+rHJLfGBLfS8TQFDNgOKSXzIYUGsrdkVQdG4AIXuMAFLnCBC1zgAhf4ccdSOLuh6OyYzhznVSPC24JqnZNaNY5C/Q585FkcZU0XB0puTnAscgG7O7pRHceMfRyLJgSWAgaRfjsZA8ROx8MJZUwwqx0PKZAxQqlyc4KDMSKM+Z6LQt0BDrbEJ8ezrXM5LvAkoW/Z7re9AYdCXeBxt7S0jl+EBRkwR8Vw1QAAAABJRU5ErkJggg==","width":62,"height":60},"a_word":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAA7CAYAAAA5MNl5AAABPElEQVR42u2YPa7EMAiEM8j32Hald//zsdVKWyR6Bg8xQaR0AfPx42Dw+nsfFT45inzj5ExPzuC0z7RlzgguBKnDPibhQjLyK0AvRMABoxcwiASxlMyqEIqtMRFNJQnBRGm5oYazNGabG87gzNpyXb9wlo1aRRltmUFWbhvmlYuVZleyeLa9KRAlR18jMjlITkEKSMj1q0SnGt1Dw+gYpHmLPnOVGRpH8JX5/fmFiP8PhO00HKLUw6pBGqRBGqRBGqRBGuTIvftlLd3U8F4Ha6E3AjYmh2F0p/l5emnhrEfCd0/Vmh0RdiSx0KWM4CYIuh/ZGFFk7ZGtAZCMonZmZDu4ZBZ3d0ZSAMsTRPZ7xBCtNBmTjJNs1dICEwRZhsNVEK2yfEBvUW5qeKnQ6Csg6NJKAIJu9gZ5NoirhD8fHjEocokQQAAAAABJRU5ErkJggg==","width":50,"height":59},"OF":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADEAAAA7CAYAAADSB2J6AAABE0lEQVR42u1Zyw7DIAyro/zHrpP2/9+X3naYqqmlYbFZOCJBYnDeeLyem/qybYHlN8/HwR4Gzpw5Nw3EFSWXpxMqQaANeyEQYACBajr6RU+DL8oEK51wACpYaHSXTsHkqexmUAsG12xJEToqf8ML0g10sOtUfD7toAQiHZyTMgQKPwFlm4C6d4KKd0JFrW2JyqMqIfQVamxXVn4UBBhBu9qr/0UCGAmvf6Y4iiQZ7zt8cj/1swsSM+JIF0UDjgAz5JhyznQE4leuFNl3WLIAqPadyn/SmJRhSMXLgBujUmpDlhQ5xqzcamkHMidFPQJmHMbT2Ix1eUpCqS6K1EFQBUJT7Pix0wltEw2imFqm3tZfhk47OCAZN2QIje0AAAAASUVORK5CYII=","width":49,"height":59},"OR":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAAA7CAYAAADMzlLJAAABW0lEQVR42u2bUZLEIAhE7RT3mN+pmvufr/cCO7uGAILifyY+aUDbDF6f9zh1XOPgoYVnUV5aRb78AlwPHkZRaHTOK+C3yPWOfMM3/Hn53pFXPoeivNDAbyf542UvxlFnovRgdKvDLxNg1rS5nIoKvkSClWRPZzlileRnc17b5jAxkcgagTuyp9dL/3knM1V7qwWI6hp8WvCyVWdWjjyDttH0hEf0/tvzN8VZYsx8UJKFUsfq1JJgcGTe4dEgUlwArZq3FCtcbpFnUWh6n+q2sK3ayWn4hm/4meJw9zgaeS5Xz1sC2xBOMTCjXRpYwFtJH1msqrHoohLJasMUPAI8/L8WIsr1CWt1GjvKUhW3vslBImOTXo6QjFH7cLKje4vVHh6MZM5gWHje1WWFNt/hQQnFifaH4DrBiMizihskVSu1Re6Lww0r2szYCL7d2/6PzaEG5nbS78ifOn4AyHdU/ZLWD40AAAAASUVORK5CYII=","width":63,"height":59},"!/?":{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA7CAYAAAAn+enKAAABHElEQVR42u3aSw6DMAwEUAdxj24r9f7nG9b9SBSwk5kJWQPSY2InEbTH6xkzjSUmG6pgzJgwZpzSuGvYEIwrKbskDFcw7nX4/WXACYyM61y7NNTByLpnMW9UX3U9y8YDKmBkP3A1T7YpgZGFVKjhEixrwqiAsiZcilVvWi3EDw+oxjIljGooU8LdsAzgrliVvXQLk60lekJHJzwEOwo8DDsCPBTbu4YxEsrUpVsYfmoBA7YXmAbbA0yFrQbTYSvBlNiqZQmM0KqEqbE9mhYVNhsMdmwmWAKbBZbBZoClsFfBctgrYEnsWbAs9gxYGnsULI89ArbAnq1hWew/pyW4QI8mbIHdAyMMx7qDbTHBH/G22F9ga+wn2B4bEbEBWMY3792yBNkAAAAASUVORK5CYII=","width":60,"height":59}};
+  const SPECIALS = {and:'AND', the:'THE', a_word:'A', OF:'OF', OR:'OR', '!/?':'!/?'};
+  const PARTS = {"components":[{"id":"angle","label":"折楔","width":13,"height":58,"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAA6CAYAAABrlNNpAAAAlElEQVR4nM2WUQrAIAxDEy+y38Huf74MBoMhDmymnfmSwiOpopXbsSMoFRgqURcYEKKQ7kVKT/MhOdBTnBZPDoQopHXPSY0ahzvJgZACyYHedO3csHhyIEQh9fRTQ90qkV4iTqwLdjw5EB0IqRBT3z32uv133bn+oKYDwYWY5vTmlvOh6obYKk6LxzQnVJr7W/4+NU6jaRLj/0E9ZQAAAABJRU5ErkJggg=="},{"id":"vertical","label":"长竖楔","width":15,"height":58,"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAA6CAYAAABvYQNUAAAAhklEQVR4nO2SQQrAIAwEs4v/6LXQ/7/PngQLxSaNJSk4pygZNwSxHXsVEYidWlrRXY4eqv2hPDWMoLYxlYx/ji18+UHixsa0ZHhkC2hFjk+CsGQN6A85FmZeGi3NHhlhycllzE6GR76F4oBLTrAwhCWrpqA44JJt0Nh/YckTFwaP7Er+Vj4Bc9wF9QliKh8AAAAASUVORK5CYII="},{"id":"horizontal","label":"横楔","width":34,"height":19,"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAATCAYAAAD1Yd/KAAAAfklEQVR4nMXWMQqAMAyF4TzxHq6C9z9fXHRQYm3S5uWHLkXrR3AotmNXeQYpaDE+rNeiQ75SJqgFoYJ6IBTQGnhHM35sz0RSpxSZiJWFQQXE6m9SYEFc0CoI3hvZEPQ+OAuC0QNGIJCJRSCQhDwQSGI9EAihFgQMwJ0FKbmhnXauD7Fm+32OAAAAAElFTkSuQmCC"},{"id":"small-angle","label":"小折楔","width":23,"height":15,"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAPCAYAAAAPr1RWAAAAeUlEQVR4nK2UUQ7AIAhD6eI99rtk9z9f/ZnJNgFFbOIfvlZQcd4X5SvIJh0KjK+VhstjoCVmxqRM1nGlbX9428hJI9estUUSQ6UVxmsLgv3uTmQl3yF6ybkIRfS2jKTOqCQSY1RQgmBMGndwC4wIUINr4PQHZr3QLaoQ4xOiF4Gl1QAAAABJRU5ErkJggg=="},{"id":"short-vertical","label":"短竖楔","width":20,"height":29,"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAdCAYAAACqhkzFAAAAdUlEQVR4nN2QSwrAIAwFM6H36LbQ+5/P0oW0lAqaxH58C1FDxonM65LkCGJLyv1ToWBNUgmOOsa8C10MJciSfelm6LUkbyIMOR+uQPdfqrOfGiBvGdICxPqKWhstQCw19fl8AEjl3UAjN0eHAxIB5Fcjy+PADfFtBL7ablBRAAAAAElFTkSuQmCC"},{"id":"long-horizontal","label":"长横楔","width":58,"height":16,"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAAQCAYAAABHjGx4AAAAgUlEQVR4nN2WQQrAIAwEd2H/0Wuh/3+fvUSQIq1I2ibOJV5UJi4qt2OHUQAQiyITrLTjFq4gyhvBSskursl56cTltE74yMvqSHxTN0D4h9GmMrvoKB4pYwZRt2YJsUkfXX69oay+ceOGeVo8TzSUlKdoeLGnT/0yYrjQ+9Snl+pxAgH2D7MYZh6RAAAAAElFTkSuQmCC"}],"counts":{"A":[1,1,0,0,0,0],"a":[1,1,0,0,0,0],"B":[1,1,3,0,0,0],"b":[1,1,3,0,0,0],"C":[1,1,0,1,0,0],"c":[1,1,0,1,0,0],"D":[1,0,1,0,2,0],"d":[1,0,1,0,2,0],"E":[0,1,3,0,0,0],"e":[0,1,3,0,0,0],"F":[0,1,2,0,0,0],"f":[0,1,2,0,0,0],"G":[0,2,2,0,1,0],"g":[0,2,2,0,1,0],"H":[0,2,0,2,0,0],"h":[0,2,0,2,0,0],"I":[0,1,1,2,0,0],"i":[0,1,1,2,0,0],"J":[0,1,1,2,0,0],"j":[0,1,1,2,0,0],"K":[1,0,0,2,0,2],"k":[1,0,0,2,0,2],"L":[1,0,2,0,0,0],"l":[1,0,2,0,0,0],"M":[2,0,0,2,0,0],"m":[2,0,0,2,0,0],"N":[2,0,0,1,0,0],"n":[2,0,0,1,0,0],"O":[0,1,2,2,0,0],"o":[0,1,2,2,0,0],"P":[1,2,0,1,0,0],"p":[1,2,0,1,0,0],"Q":[1,1,0,2,0,0],"q":[1,1,0,2,0,0],"R":[0,2,1,0,1,0],"r":[0,2,1,0,1,0],"S":[0,3,1,0,0,0],"s":[0,3,1,0,0,0],"T":[2,1,0,0,0,0],"t":[2,1,0,0,0,0],"U":[1,0,2,2,0,0],"u":[1,0,2,2,0,0],"V":[1,0,3,1,0,0],"v":[1,0,3,1,0,0],"W":[1,0,2,3,0,0],"w":[1,0,2,3,0,0],"X":[2,2,0,0,0,0],"x":[2,2,0,0,0,0],"Y":[1,3,0,0,0,0],"y":[1,3,0,0,0,0],"Z":[2,0,2,0,0,0],"z":[2,0,2,0,0,0],"and":[0,0,0,1,2,1],"the":[0,0,0,0,2,1],"a_word":[0,0,0,2,2,0],"OF":[0,0,1,0,3,0],"OR":[2,0,0,2,0,0],"!/?":null}};
+  let mappingApi = null;
+  function mappedValue(glyph) { return mappingApi ? mappingApi.value(glyph) : ''; }
+  function glyphForLetter(letter) { return mappingApi ? mappingApi.resolve(letter) : null; }
+  const $ = id => document.getElementById(id);
+  const input = $('english-input');
+  const output = $('cipher-output');
+  const keys = $('letter-keys');
+  const specialKeys = $('special-keys');
+  const STORE_KEY = 'ato-babelian-writer-v1';
+  const MAX_LENGTH = 6000;
+  let keyboardCase = 'upper';
+  let currentText = '';
+  let specialSpans = [];
+  let nativeEditRange = null;
+  let selection = {start:0,end:0};
+  let history = [];
+  let future = [];
+  let statusTimer;
+  let composing = false;
+  let imagesPromise;
+
+  function notify(message) {
+    clearTimeout(statusTimer);
+    $('status').textContent = message;
+    $('status').classList.add('show');
+    statusTimer = setTimeout(() => $('status').classList.remove('show'), 2600);
+  }
+  function imageFor(letter, className) {
+    const glyph = GLYPHS[letter];
+    const img = document.createElement('img');
+    img.src = glyph.src;
+    img.className = className;
+    img.alt = letter;
+    img.draggable = false;
+    img.width = glyph.width;
+    img.height = glyph.height;
+    if (className === 'cipher-glyph') {
+      img.style.width = `calc(var(--glyph-height) * ${glyph.width / glyph.height})`;
+      img.dataset.letter = letter;
+      img.dataset.glyph = letter;
+      img.title = letter;
+    }
+    return img;
+  }
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({text:currentText, keyboardCase, specialSpans})); } catch (_) {}
+  }
+  function rememberSelection() {
+    selection = {start:input.selectionStart, end:input.selectionEnd};
+  }
+  function snapshot() { return {text:currentText, start:selection.start, end:selection.end, specialSpans:specialSpans.map(span=>({...span})), mappingState:mappingApi?.snapshot()}; }
+  function validateSpans(spans, text) {
+    if (!Array.isArray(spans)) return [];
+    const clean = spans.filter(s => s && Object.hasOwn(GLYPHS,s.glyph) && Number.isInteger(s.start) && Number.isInteger(s.end)
+      && s.start >= 0 && s.end <= text.length && s.end > s.start
+      && (s.text!==undefined ? s.text===text.slice(s.start,s.end) : text.slice(s.start,s.end).toUpperCase()===(SPECIALS[s.glyph] ?? s.glyph.toUpperCase()))).map(s=>({start:s.start,end:s.end,glyph:s.glyph,text:text.slice(s.start,s.end)})).sort((a,b)=>a.start-b.start);
+    let end = 0;
+    return clean.filter(s => { if (s.start < end) return false; end=s.end; return true; });
+  }
+  function moveSpans(start, end, insertedLength) {
+    const delta = insertedLength - (end-start);
+    return specialSpans.flatMap(s => {
+      if (s.end <= start) return [{...s}];
+      if (s.start >= end) return [{...s,start:s.start+delta,end:s.end+delta}];
+      return [];
+    });
+  }
+  function spansAfterTextEdit(next, range = null) {
+    if (next === currentText) return specialSpans.map(s=>({...s}));
+    if (range) {
+      const size=next.length-currentText.length+(range.end-range.start);
+      if (size>=0 && next.slice(0,range.start)===currentText.slice(0,range.start)
+        && next.slice(range.start+size)===currentText.slice(range.end)) return moveSpans(range.start,range.end,size);
+    }
+    let start=0, end=currentText.length, nextEnd=next.length;
+    while (start<end && start<nextEnd && currentText[start]===next[start]) start++;
+    while (end>start && nextEnd>start && currentText[end-1]===next[nextEnd-1]) {end--;nextEnd--;}
+    return moveSpans(start,end,nextEnd-start);
+  }
+  function glyphLines(text=currentText, spans=specialSpans) {
+    const starts=new Map(spans.map(s=>[s.start,s]));
+    const lines=[[]];
+    for (let pos=0; pos<text.length;) {
+      const span=starts.get(pos);
+      if (span) {
+        lines.at(-1).push({glyph:span.glyph,english:text.slice(span.start,span.end)});
+        pos=span.end;
+      } else {
+        const letter=text[pos++];
+        if (letter==='\n') lines.push([]);
+        else if (/^[A-Za-z]$/.test(letter)) {const glyph=glyphForLetter(letter);if(glyph)lines.at(-1).push({glyph,english:letter});}
+      }
+    }
+    return lines;
+  }
+  function resizeEnglish() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(260, Math.max(64, input.scrollHeight)) + 'px';
+  }
+  function pushHistory() {
+    history.push(snapshot());
+    if (history.length > 150) history.shift();
+    future = [];
+  }
+  function render() {
+    output.replaceChildren();
+    let count = 0;
+    const fragment = document.createDocumentFragment();
+    for (const line of glyphLines()) {
+      const row = document.createElement('div');
+      row.className = 'cipher-line';
+      for (const token of line) {
+        const img=imageFor(token.glyph, 'cipher-glyph');
+        img.alt=token.english; img.title=token.english; img.dataset.letter=token.english;
+        row.append(img);
+        count++;
+      }
+      fragment.append(row);
+    }
+    if (count || currentText.includes('\n')) {
+      output.append(fragment);
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      const img = imageFor('B', '');
+      img.alt = '';
+      const text = document.createElement('span');
+      text.textContent = currentText ? '尚无匹配字形，请先设置对应映射' : '等待第一枚字形';
+      empty.append(img, text);
+      output.append(empty);
+    }
+    output.setAttribute('aria-label', count ? `巴别语，共${count}个字形，对应英文：${currentText}` : '尚未输入巴别语');
+    $('glyph-count').textContent = `${count} 个字形`;
+    $('undo').disabled = history.length === 0;
+    $('copy').disabled = !currentText;
+    $('clear').disabled = !currentText;
+    $('download').disabled = count === 0;
+    resizeEnglish();
+    save();
+  }
+  function applyText(next, start, end = start, record = true, spans = null) {
+    const nextSpans=validateSpans(spans ?? spansAfterTextEdit(next),next);
+    if ((next !== currentText || JSON.stringify(nextSpans)!==JSON.stringify(specialSpans)) && record) pushHistory();
+    specialSpans=nextSpans;
+    currentText = next;
+    input.value = next;
+    selection = {start, end};
+    render();
+    input.setSelectionRange(start, end);
+  }
+  function insert(value, special = null) {
+    const {start, end} = selection;
+    if (currentText.length - (end - start) + value.length > MAX_LENGTH) {
+      notify('最多输入6000个字符，请分段书写。');
+      return;
+    }
+    const spans=moveSpans(start,end,value.length);
+    if (special) spans.push({start,end:start+value.length,glyph:special,text:value});
+    applyText(currentText.slice(0,start) + value + currentText.slice(end), start + value.length, start + value.length, true, spans);
+    if (start === currentText.length - value.length) {
+      $('cipher-area').scrollTop = $('cipher-area').scrollHeight;
+    }
+  }
+  function erase(forward = false) {
+    let {start, end} = selection;
+    if (start === end) {
+      const token=specialSpans.find(s=>forward ? s.start===start : s.end===end);
+      if (token) {start=token.start;end=token.end;}
+      else if (forward && end < currentText.length) end += Array.from(currentText.slice(end))[0].length;
+      else if (!forward && start > 0) start -= Array.from(currentText.slice(0,start)).at(-1).length;
+      else return;
+    }
+    applyText(currentText.slice(0,start) + currentText.slice(end), start, start, true, moveSpans(start,end,0));
+  }
+  function undo(redo = false) {
+    const from = redo ? future : history;
+    if (!from.length) return;
+    const to = redo ? history : future;
+    to.push(snapshot());
+    const old = from.pop();
+    if(old.mappingState && mappingApi) mappingApi.restore(old.mappingState);
+    applyText(old.text, old.start, old.end, false, old.specialSpans ?? []);
+  }
+  function makeKeyboard() {
+    keys.replaceChildren();
+    const alphabet = keyboardCase === 'upper' ? 'QWERTYUIOPASDFGHJKLZXCVBNM' : 'qwertyuiopasdfghjklzxcvbnm';
+    for (const letter of alphabet) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'letter-key';
+      button.dataset.letter = letter;
+      const glyph = glyphForLetter(letter);
+      button.disabled = !glyph;
+      button.classList.toggle('assigned',!!glyph);
+      let shape;
+      if(glyph){shape=imageFor(glyph,'key-glyph');shape.alt='';button.dataset.glyph=glyph;}
+      else{shape=document.createElement('span');shape.className='key-placeholder';shape.setAttribute('aria-hidden','true');}
+      const label = document.createElement('span');
+      label.className = 'key-letter';
+      label.textContent = letter;
+      button.title = glyph ? `输入 ${letter} 的字形` : `${letter} 尚未分配唯一字形`;
+      button.setAttribute('aria-label',button.title);
+      button.append(shape, label);
+      button.addEventListener('click', () => {if(glyph)insert(letter,glyph);});
+      keys.append(button);
+    }
+    specialKeys.replaceChildren();
+    for (const glyph of Object.keys(GLYPHS)) {
+      const value=mappedValue(glyph);
+      if(!value || /^[A-Za-z]$/.test(value))continue;
+      const button=document.createElement('button');
+      button.type='button'; button.className='special-key'; button.dataset.glyph=glyph;
+      button.disabled=glyphForLetter(value)!==glyph;
+      button.setAttribute('aria-label',`输入 ${value} 的字形`);button.title=value;
+      const img=imageFor(glyph,'key-glyph'); img.alt='';
+      const label=document.createElement('span'); label.className='key-letter'; label.textContent=value;
+      button.append(img,label);
+      button.addEventListener('click',()=>insert(value,glyph));
+      specialKeys.append(button);
+    }
+    if(!specialKeys.children.length){const empty=document.createElement('div');empty.className='special-empty';empty.textContent='尚未设置词语或符号对应';specialKeys.append(empty);}
+    $('case-upper').setAttribute('aria-pressed', String(keyboardCase === 'upper'));
+    $('case-lower').setAttribute('aria-pressed', String(keyboardCase === 'lower'));
+    save();
+  }
+  function setCase(value) {
+    if (keyboardCase === value) return;
+    keyboardCase = value;
+    makeKeyboard();
+  }
+  function syncPhysicalCase(event) {
+    if (/^[A-Za-z]$/.test(event.key)) {
+      // The browser has already applied Caps Lock, Shift and the keyboard layout.
+      setCase(event.key === event.key.toUpperCase() ? 'upper' : 'lower');
+    } else if (event.key === 'Shift' || event.key === 'CapsLock') {
+      const capitals = event.getModifierState('CapsLock') !== event.shiftKey;
+      setCase(capitals ? 'upper' : 'lower');
+    }
+  }
+  function flash(letter) {
+    const button = keys.querySelector(`[data-letter="${letter}"]`);
+    if (!button) return;
+    button.classList.add('pressed');
+    setTimeout(() => button.classList.remove('pressed'), 130);
+  }
+  // Preserve the editor selection when operating the on-screen keyboard.
+  document.addEventListener('selectionchange', () => { if (document.activeElement === input) rememberSelection(); });
+  input.addEventListener('select', () => { if (document.activeElement === input) rememberSelection(); });
+  input.addEventListener('click', rememberSelection);
+  input.addEventListener('keyup', rememberSelection);
+  input.addEventListener('beforeinput', event => {
+    if (composing) return;
+    rememberSelection();
+    nativeEditRange={...selection};
+    const backward=event.inputType==='deleteContentBackward';
+    const forward=event.inputType==='deleteContentForward';
+    if (selection.start===selection.end && (backward || forward)
+      && specialSpans.some(s=>forward ? s.start===selection.start : s.end===selection.end)) {
+      event.preventDefault(); nativeEditRange=null; erase(forward);
+    }
+  });
+  input.addEventListener('compositionstart', () => { composing = true; });
+  input.addEventListener('compositionend', () => { composing = false; receiveInput(); });
+  function receiveInput() {
+    if (composing) return;
+    const next = input.value.replace(/\r\n?/g, '\n').slice(0,MAX_LENGTH);
+    const start = Math.min(input.selectionStart, next.length);
+    const end = Math.min(input.selectionEnd, next.length);
+    const spans=spansAfterTextEdit(next,nativeEditRange);
+    nativeEditRange=null;
+    applyText(next, start, end, true, spans);
+  }
+  input.addEventListener('input', receiveInput);
+  $('case-upper').addEventListener('click', () => setCase('upper'));
+  $('case-lower').addEventListener('click', () => setCase('lower'));
+  $('space').addEventListener('click', () => insert(' '));
+  $('newline').addEventListener('click', () => insert('\n'));
+  $('backspace').addEventListener('click', () => erase());
+  for (const controls of [keys, specialKeys, $('space'), $('newline'), $('backspace'), $('undo'), $('clear')]) {
+    controls.addEventListener('pointerdown', event => {
+      if (event.button === 0 && document.activeElement === input) event.preventDefault();
+    });
+  }
+  $('undo').addEventListener('click', () => undo());
+  $('clear').addEventListener('click', () => { applyText('',0); notify('已清空，可点“撤销”恢复。'); });
+  $('copy').addEventListener('click', async () => {
+    const text = currentText;
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('fallback');
+      await navigator.clipboard.writeText(text);
+      notify('已复制英文。');
+    } catch (_) {
+      const backup = {...selection};
+      input.focus(); input.select();
+      const copied = document.execCommand('copy');
+      input.setSelectionRange(backup.start, backup.end); selection = backup;
+      notify(copied ? '已复制英文。' : '请在英文框中全选并复制。');
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if($('conflict-dialog').open)return;
+    if (event.isComposing || composing || event.altKey) return;
+    if(event.target!==input && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+    if (event.ctrlKey || event.metaKey) {
+      if (event.key.toLowerCase() === 'z') { event.preventDefault(); undo(event.shiftKey); }
+      else if (event.key.toLowerCase() === 'y') { event.preventDefault(); undo(true); }
+      return;
+    }
+    syncPhysicalCase(event);
+    // Native textarea input retains the user's exact case and punctuation.
+    if (event.target === input || event.target.closest('textarea,input,[contenteditable="true"]')) return;
+    if (/^[A-Za-z]$/.test(event.key)) {
+      event.preventDefault();
+      const letter = event.key;
+      const glyph=glyphForLetter(letter);
+      insert(letter,glyph); flash(letter);
+      if(!glyph)notify('当前配置未给字形分配“'+letter+'”；仅保留英文。');
+    } else if (event.key === ' ' && event.target.tagName !== 'SUMMARY') {
+      event.preventDefault(); insert(' ');
+    } else if (event.key === 'Backspace' || event.key === 'Delete') {
+      event.preventDefault(); erase(event.key === 'Delete');
+    } else if (event.key === 'Enter' && !event.target.closest('button,summary,a')) {
+      event.preventDefault(); insert('\n');
+    }
+  });
+  document.addEventListener('keyup', event => {
+    if($('conflict-dialog').open)return;
+    if (event.isComposing || composing || event.ctrlKey || event.metaKey || event.altKey) return;
+    if(event.target!==input && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+    if (event.key === 'Shift' || event.key === 'CapsLock') syncPhysicalCase(event);
+  });
+
+  function loadImages() {
+    if (!imagesPromise) imagesPromise = Promise.all(Object.entries(GLYPHS).map(([letter,glyph]) => new Promise((resolve,reject) => {
+      const img = new Image(); img.onload = () => resolve([letter,img]); img.onerror = reject; img.src = glyph.src;
+    }))).then(entries => Object.fromEntries(entries));
+    return imagesPromise;
+  }
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a'); link.href = url; link.download = filename;
+    document.body.append(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+  async function exportPNG() {
+    const text = currentText;
+    const cipherLines = glyphLines();
+    const button = $('download');
+    button.disabled = true;
+    try {
+      const images = await loadImages();
+      const width = 1600, margin = 78, right = width - margin, glyphHeight = 64;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas unavailable');
+      const placements = [];
+      let x = margin, y = 146;
+      for (const line of cipherLines) {
+        for (const token of line) {
+          const letter=token.glyph;
+          const glyph = GLYPHS[letter];
+          const w = glyph.width / glyph.height * glyphHeight;
+          if (x + w > right) { x = margin; y += 86; }
+          placements.push({letter,x,y,width:w}); x += w + 5;
+        }
+        x = margin; y += 86;
+      }
+      const separatorY = y + 17;
+      ctx.font = '27px Consolas, monospace';
+      const englishRows = [];
+      for (const line of text.split('\n')) {
+        let row = '';
+        for (const letter of line.replace(/\t/g,'    ')) {
+          if (row && ctx.measureText(row + letter).width > width - 2 * margin) { englishRows.push(row); row = ''; }
+          row += letter;
+        }
+        englishRows.push(row);
+      }
+      const englishY = separatorY + 86;
+      const height = englishY + englishRows.length * 42 + 68;
+      if (height > 30000) { notify('文字较长，请分段下载图片。'); return; }
+      canvas.height = height;
+      ctx.fillStyle = '#fffdf7'; ctx.fillRect(0,0,width,height);
+      ctx.fillStyle = '#243d35'; ctx.font = '20px sans-serif'; ctx.fillText('ATO  /  BABELIAN',margin,64);
+      ctx.fillStyle = '#7b806f'; ctx.font = '17px sans-serif'; ctx.fillText('BABELIAN',margin,113);
+      for (const p of placements) ctx.drawImage(images[p.letter],p.x,p.y,p.width,glyphHeight);
+      ctx.strokeStyle = '#d9ddcf'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(margin,separatorY); ctx.lineTo(right,separatorY); ctx.stroke();
+      ctx.fillStyle = '#7b806f'; ctx.font = '17px sans-serif'; ctx.fillText('ENGLISH',margin,separatorY+43);
+      ctx.fillStyle = '#35473d'; ctx.font = '27px Consolas, monospace';
+      englishRows.forEach((row,i) => ctx.fillText(row,margin,englishY+i*42));
+      const blob = await new Promise(resolve => canvas.toBlob(resolve,'image/png'));
+      if (!blob) throw new Error('Image too large');
+      downloadBlob(blob,'巴别语-'+new Date().toISOString().replace(/[:.]/g,'-')+'.png');
+      notify('图片已生成，包含巴别语和英文。');
+    } catch (error) { console.error(error); notify('图片导出失败，请缩短内容后重试。'); }
+    finally { button.disabled = !glyphLines().some(line=>line.length); }
+  }
+  $('download').addEventListener('click',exportPNG);
+  window.addEventListener('resize',resizeEnglish);
+  $('brand-glyph').src = GLYPHS.B.src;
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (saved && typeof saved.text === 'string') {
+      currentText = saved.text.replace(/\r\n?/g,'\n').slice(0,MAX_LENGTH);
+      keyboardCase = saved.keyboardCase === 'lower' ? 'lower' : 'upper';
+      specialSpans=validateSpans(saved.specialSpans,currentText);
+    }
+  } catch (_) {}
+  input.value = currentText;
+  selection = {start:currentText.length,end:currentText.length};
+  input.setSelectionRange(selection.start,selection.end);
+  makeKeyboard(); render();
+    // Glyph identities stay fixed. Profiles change their readings, not their shapes.
+  const GLYPH_IDS=Object.keys(GLYPHS);
+  const DEFAULT_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,'']));
+  // Only used to identify the old automatically filled default during migration.
+  const LEGACY_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,SPECIALS[key] ?? key]));
+  const MAPPING_STORE='ato-babelian-mapping-profiles-v2';
+  const LEGACY_STORE='ato-babelian-mapping-profiles-v1';
+  let workingMap={...DEFAULT_MAP}, baselineMap={...DEFAULT_MAP}, baseName='空白配置';
+  let profileSlots=Array(5).fill(null), chosenSlot=0;
+  let componentCounts=[0,3,1,0,0,0], showAllGlyphs=false, chosenGlyph='S';
+  let storageAvailable=true;
+
+  function validReading(value) {
+    return typeof value==='string' && value.length<=40 && !/[\u0000-\u001f\u007f]/.test(value);
+  }
+  function checkedMapping(value) {
+    if (!value || typeof value!=='object' || GLYPH_IDS.some(key=>!Object.hasOwn(value,key) || !validReading(value[key]))) throw new Error('配置需要包含58个字形的对应文本；未设置项使用空字符串。');
+    return Object.fromEntries(GLYPH_IDS.map(key=>[key,value[key].trim()]));
+  }
+  function mappingsEqual(a,b) {return Object.keys(DEFAULT_MAP).every(key=>a[key]===b[key]);}
+  function persistMappings() {
+    try {
+      localStorage.setItem(MAPPING_STORE,JSON.stringify({version:2,workingMap,baselineMap,baseName,profileSlots,chosenSlot}));
+      storageAvailable=true;
+    } catch (_) {storageAvailable=false;}
+  }
+  function reading(glyph) {return workingMap[glyph] ?? '';}
+  function glyphLabel(glyph) {return '字形 G'+String(GLYPH_IDS.indexOf(glyph)+1).padStart(2,'0');}
+  function duplicatesFor(value,glyph=null) {return value ? GLYPH_IDS.filter(key=>key!==glyph && workingMap[key]===value) : [];}
+  function conflictGroups(mapping=workingMap) {
+    const groups=new Map();
+    for(const glyph of GLYPH_IDS){const value=mapping[glyph];if(value){if(!groups.has(value))groups.set(value,[]);groups.get(value).push(glyph);}}
+    return [...groups].filter(([,glyphs])=>glyphs.length>1);
+  }
+  function resolveReading(letter) {
+    // Legacy profiles are preserved, but ambiguous readings are never guessed.
+    const matches=duplicatesFor(letter);
+    return matches.length===1 ? matches[0] : null;
+  }
+  function updateMappingBadge() {
+    const dirty=!mappingsEqual(workingMap,baselineMap);
+    $('active-map-label').textContent='当前映射：'+baseName+(dirty?' · 已修改，待存入栏位':'');
+    const conflicts=conflictGroups();
+    $('mapping-warning').hidden=!conflicts.length;
+    $('mapping-warning-text').textContent='此配置有 '+conflicts.length+' 组重复对应。原数据已保留，冲突按键暂停使用，请选择一个字形修改。';
+  }
+  function fullGlyphSequence() {
+    const spans=new Map(specialSpans.map(span=>[span.start,span]));
+    const sequence=[];
+    for(let pos=0;pos<currentText.length;) {
+      const span=spans.get(pos);
+      if(span){sequence.push({glyph:span.glyph,text:currentText.slice(span.start,span.end)});pos=span.end;}
+      else {
+        const text=currentText[pos++];
+        sequence.push({glyph:/^[A-Za-z]$/.test(text)?resolveReading(text):null,text});
+      }
+    }
+    return sequence;
+  }
+  function useMapping(next,{name=baseName,baseline=baselineMap}={}) {
+    next=checkedMapping(next);
+    const sequence=fullGlyphSequence();
+    pushHistory();
+    workingMap={...next};baseName=name;baselineMap={...baseline};
+    let text='';const spans=[];
+    for(const token of sequence) {
+      if(!token.glyph){text+=token.text;continue;}
+      // Keep the glyph even when its reading is cleared, including across reloads.
+      const value=reading(token.glyph)||'?';
+      const start=text.length;text+=value;
+      spans.push({start,end:text.length,glyph:token.glyph,text:value});
+    }
+    // A custom word may be longer than its former one-letter reading.
+    if(text.length>MAX_LENGTH){
+      const old=history.pop();
+      workingMap={...old.mappingState.workingMap};baselineMap={...old.mappingState.baselineMap};baseName=old.mappingState.baseName;
+      notify('新对应文本会超出6000字符，请先缩短书写内容。');return false;
+    }
+    applyText(text,text.length,text.length,false,spans);
+    makeKeyboard();renderFinder();updateMappingBadge();persistMappings();
+    $('profile-status').textContent='当前使用：'+baseName+(!mappingsEqual(workingMap,baselineMap)?'，包含尚未存入栏位的修改。':'。');
+    return true;
+  }
+  function candidateList() {
+    if(showAllGlyphs)return Object.keys(GLYPHS);
+    return Object.keys(GLYPHS).filter(key=>PARTS.counts[key]?.every((n,i)=>n===componentCounts[i]));
+  }
+  function showConflict() {
+    const field=$('mapping-value'),value=field.value.trim();
+    const duplicates=duplicatesFor(value,chosenGlyph);
+    $('mapping-conflict').textContent=duplicates.length ?
+      '“'+value+'”已分配给 '+duplicates.map(glyphLabel).join('、')+'。应用时将显示冲突字形，供你选择重新编辑。' :
+      (chosenGlyph==='!/?'?'此斜楔是独立符号，不计入下面六类部件；可从全部字形中直接选择。':'留空可取消对应。未设置的字形插入后，英文暂用 ? 占位。');
+  }
+  function openConflict(glyph,value,others,pending=true) {
+    const dialog=$('conflict-dialog'),root=$('conflict-options');root.replaceChildren();
+    $('conflict-description').textContent=pending ?
+      '“'+value+'”已有对应字形，本次修改尚未保存。请选择要重新编辑的一个字形；另一字形不会被覆盖。' :
+      '“'+value+'”对应了多个字形。请选择其中一个重新编辑，直到每个对应只属于一个字形。';
+    for(const [index,key] of [glyph,...others].entries()){
+      const button=document.createElement('button');button.type='button';button.className='conflict-option';button.dataset.glyph=key;
+      const img=imageFor(key,'');img.alt=glyphLabel(key);
+      const caption=document.createElement('small');
+      caption.textContent=glyphLabel(key)+' · 当前：'+(workingMap[key]||'未设置')+(index===0&&pending?' → 拟设为：'+value:'');
+      const action=document.createElement('strong');action.textContent=index===0&&pending?'修改正在设置的字形':'修改已占用的字形';
+      button.append(img,caption,action);
+      button.addEventListener('click',()=>{
+        dialog.close();switchTool('mapping');selectGlyph(key);
+        if(index===0 && pending)$('mapping-value').value=value;
+        showConflict();$('mapping-value').focus();$('mapping-value').select();
+        $('mapping-conflict').textContent=index===0&&pending ? '请修改此字形的对应后重新应用，另一字形保持不变。' :
+          '请修改或清除此字形的对应。'+(pending?'完成后可回到 '+glyphLabel(glyph)+' 设置“'+value+'”。':'');
+      });
+      root.append(button);
+    }
+    if(!dialog.open)dialog.showModal();
+  }
+  function openExistingConflict() {
+    const first=conflictGroups()[0];
+    if(first){const [value,glyphs]=first;openConflict(glyphs[0],value,glyphs.slice(1),false);return true;}
+    return false;
+  }
+  function renderCatalog() {
+    const root=$('glyph-catalog');root.replaceChildren();
+    for(const glyph of Object.keys(GLYPHS)) {
+      const button=document.createElement('button');button.type='button';button.className='catalog-key';button.dataset.glyph=glyph;
+      button.setAttribute('aria-pressed',String(glyph===chosenGlyph));button.title=glyphLabel(glyph)+' → '+(workingMap[glyph]||'未设置');
+      const img=imageFor(glyph,'');img.alt='';
+      const label=document.createElement('span');label.textContent=workingMap[glyph]||'未设置';
+      button.append(img,label);button.addEventListener('click',()=>selectGlyph(glyph));root.append(button);
+    }
+  }
+  function renderFinder() {
+    const matches=candidateList();
+    if(!matches.includes(chosenGlyph))chosenGlyph=matches[0]??null;
+    const valid=!!chosenGlyph;
+    $('candidate-image').hidden=!valid;
+    $('candidate-prev').disabled=matches.length<2;$('candidate-next').disabled=matches.length<2;
+    $('mapping-value').disabled=!valid;
+    for(const id of ['mapping-apply','mapping-insert','mapping-reset'])$(id).disabled=!valid;
+    if(valid){
+      $('candidate-image').src=GLYPHS[chosenGlyph].src;
+      $('candidate-image').alt='候选'+glyphLabel(chosenGlyph);
+      $('candidate-id').textContent=glyphLabel(chosenGlyph);
+      $('candidate-meaning').textContent=workingMap[chosenGlyph]||'未设置';
+      $('mapping-value').value=workingMap[chosenGlyph];
+      $('mapping-reset').disabled=!workingMap[chosenGlyph];
+    }else{
+      $('candidate-id').textContent='没有符合全部数量条件的字形';
+      $('candidate-meaning').textContent='—';$('mapping-value').value='';
+    }
+    $('candidate-position').textContent=valid?(matches.indexOf(chosenGlyph)+1)+' / '+matches.length+' 个候选':'0 个候选';
+    $('filter-all').textContent=showAllGlyphs?'返回数量筛选':'浏览全部字形';
+    PARTS.components.forEach((part,i)=>{$('part-'+part.id).value=componentCounts[i];});
+    renderCatalog();showConflict();
+  }
+  function selectGlyph(glyph) {
+    chosenGlyph=glyph;
+    const counts=PARTS.counts[glyph];
+    if(counts){componentCounts=[...counts];showAllGlyphs=false;}else showAllGlyphs=true;
+    renderFinder();
+  }
+  function buildPartControls() {
+    for(const [i,part] of PARTS.components.entries()) {
+      const root=document.createElement('div');root.className='part-control';
+      const img=document.createElement('img');img.src=part.src;img.alt=part.label;
+      img.style.width=(part.width*1.05)+'px';img.style.height=(part.height*1.05)+'px';
+      const symbolBox=document.createElement('div');symbolBox.className='part-symbol-box';symbolBox.append(img);
+      const label=document.createElement('label');label.className='part-label';label.htmlFor='part-'+part.id;label.textContent=part.label;
+      const stepper=document.createElement('div');stepper.className='part-stepper';
+      const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.setAttribute('aria-label',part.label+'减少1');
+      const field=document.createElement('input');field.id='part-'+part.id;field.type='number';field.min='0';field.max='9';field.step='1';field.inputMode='numeric';field.value=componentCounts[i];
+      const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.setAttribute('aria-label',part.label+'增加1');
+      const change=value=>{componentCounts[i]=Math.max(0,Math.min(9,Number.isFinite(value)?Math.floor(value):0));showAllGlyphs=false;renderFinder();};
+      minus.addEventListener('click',()=>change(componentCounts[i]-1));plus.addEventListener('click',()=>change(componentCounts[i]+1));field.addEventListener('input',()=>change(field.valueAsNumber));
+      stepper.append(minus,field,plus);root.append(symbolBox,label,stepper);$('part-controls').append(root);
+    }
+  }
+  function renderProfiles(updateName=false) {
+    const root=$('profile-slots');root.replaceChildren();
+    profileSlots.forEach((slot,i)=>{
+      const button=document.createElement('button');button.className='profile-slot';button.type='button';button.dataset.slot=i;
+      button.setAttribute('aria-pressed',String(i===chosenSlot));
+      const name=document.createElement('strong');name.textContent=(i+1)+' · '+(slot?.name??'空栏位');
+      const detail=document.createElement('small');detail.textContent=slot ? GLYPH_IDS.filter(k=>slot.mapping[k]).length+' 个已设置对应'+(conflictGroups(slot.mapping).length?' · 有冲突':'') : '可保存一套映射';
+      button.append(name,detail);button.addEventListener('click',()=>{chosenSlot=i;renderProfiles(true);persistMappings();});root.append(button);
+    });
+    if(updateName)$('profile-name').value=profileSlots[chosenSlot]?.name??'配置 '+(chosenSlot+1);
+    $('profile-load').disabled=!profileSlots[chosenSlot];
+  }
+  function saveProfile() {
+    if(openExistingConflict())return;
+    const name=$('profile-name').value.trim()||'配置 '+(chosenSlot+1);
+    profileSlots[chosenSlot]={name,mapping:{...workingMap},savedAt:new Date().toISOString()};
+    baseName=name;baselineMap={...workingMap};persistMappings();renderProfiles(true);updateMappingBadge();
+    $('profile-status').textContent=storageAvailable?'已保存到栏位 '+(chosenSlot+1)+'：'+name+'。刷新后仍可载入。':'浏览器未允许本地保存；请使用“导出当前配置”保留文件备份。';
+    notify(storageAvailable?'配置已保存。':'请导出配置文件备份。');
+  }
+  function switchTool(tool) {
+    for(const name of ['write','mapping']) {
+      $('tab-'+name).setAttribute('aria-selected',String(name===tool));
+      $('panel-'+name).hidden=name!==tool;
+    }
+    if(tool==='mapping')renderFinder();
+  }
+  $('tab-write').addEventListener('click',()=>switchTool('write'));
+  $('tab-mapping').addEventListener('click',()=>switchTool('mapping'));
+  $('candidate-prev').addEventListener('click',()=>{const list=candidateList();chosenGlyph=list[(list.indexOf(chosenGlyph)-1+list.length)%list.length];renderFinder();});
+  $('candidate-next').addEventListener('click',()=>{const list=candidateList();chosenGlyph=list[(list.indexOf(chosenGlyph)+1)%list.length];renderFinder();});
+  $('filter-reset').addEventListener('click',()=>{componentCounts=[0,0,0,0,0,0];showAllGlyphs=false;renderFinder();});
+  $('filter-all').addEventListener('click',()=>{showAllGlyphs=!showAllGlyphs;renderFinder();});
+  $('mapping-value').addEventListener('input',showConflict);
+  $('conflict-cancel').addEventListener('click',()=>$('conflict-dialog').close());
+  $('resolve-conflicts').addEventListener('click',openExistingConflict);
+  $('mapping-apply').addEventListener('click',()=>{
+    const value=$('mapping-value').value.trim();
+    if(!chosenGlyph || !validReading(value)){notify('请使用不超过40个字符的字母、词语或符号。');return;}
+    const duplicates=duplicatesFor(value,chosenGlyph);
+    if(duplicates.length){openConflict(chosenGlyph,value,duplicates);return;}
+    if(useMapping({...workingMap,[chosenGlyph]:value}))notify(value?'已应用到此字形，可存入配置栏位。':'此字形的对应已清除。');
+  });
+  $('mapping-reset').addEventListener('click',()=>{if(chosenGlyph && useMapping({...workingMap,[chosenGlyph]:''}))notify('此字形的对应已清除，已输入字形保留。');});
+  $('mapping-insert').addEventListener('click',()=>{if(chosenGlyph){insert(workingMap[chosenGlyph]||'?',chosenGlyph);notify(workingMap[chosenGlyph]?'已插入所选字形。':'已插入未设置字形，英文暂用 ? 占位。');}});
+  $('profile-save').addEventListener('click',saveProfile);
+  $('profile-load').addEventListener('click',()=>{
+    const slot=profileSlots[chosenSlot];
+    if(slot && useMapping(slot.mapping,{name:slot.name,baseline:slot.mapping})){$('profile-status').textContent='已载入 '+slot.name+'；现有巴别语字形保留，英文按此配置更新。';notify('已载入 '+slot.name+'。');openExistingConflict();}
+  });
+  $('profile-default').addEventListener('click',()=>{if(useMapping(DEFAULT_MAP,{name:'空白配置',baseline:DEFAULT_MAP}))notify('已新建空白配置。已保存栏位不受影响。');});
+  $('profile-export').addEventListener('click',()=>{
+    const name=$('profile-name').value.trim()||baseName;
+    const payload={format:'ato-babelian-mapping',version:2,name,mapping:workingMap};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+    downloadBlob(blob,'巴别语映射-'+name.replace(/[\\/:*?"<>|]/g,'_')+'.json');notify('当前映射已导出。');
+  });
+  $('profile-import').addEventListener('click',()=>$('profile-file').click());
+  $('profile-file').addEventListener('change',async event=>{
+    const file=event.target.files[0];if(!file)return;
+    try{
+      if(file.size>100000)throw new Error('配置文件过大。');
+      const parsed=JSON.parse(await file.text());
+      if(parsed.format!=='ato-babelian-mapping' || ![1,2].includes(parsed.version))throw new Error('不是本工具的映射配置文件。');
+      const mapping=checkedMapping(parsed.mapping);
+      const name=typeof parsed.name==='string'?parsed.name.trim().slice(0,30)||'导入配置':'导入配置';
+      profileSlots[chosenSlot]={name,mapping,savedAt:new Date().toISOString()};
+      renderProfiles(true);persistMappings();$('profile-status').textContent='已导入栏位 '+(chosenSlot+1)+'。点击“载入此配置”应用。'+(conflictGroups(mapping).length?'文件中存在重复对应，载入时将让你选择字形修改。':'');notify('配置已导入选中栏位。');
+    }catch(error){notify('导入失败：'+error.message);}finally{event.target.value='';}
+  });
+  try{
+    const saved=JSON.parse(localStorage.getItem(MAPPING_STORE)??localStorage.getItem(LEGACY_STORE));
+    if(saved && [1,2].includes(saved.version)){
+      workingMap=checkedMapping(saved.workingMap);baselineMap=checkedMapping(saved.baselineMap);
+      baseName=typeof saved.baseName==='string'?saved.baseName.slice(0,30):'工作配置';
+      chosenSlot=Number.isInteger(saved.chosenSlot)?Math.max(0,Math.min(4,saved.chosenSlot)):0;
+      profileSlots=Array.from({length:5},(_,i)=>{const slot=saved.profileSlots?.[i];if(!slot)return null;try{return {name:String(slot.name).slice(0,30),mapping:checkedMapping(slot.mapping),savedAt:slot.savedAt};}catch(_){return null;}});
+      // Do not erase named profiles or a customized working map. Keep v1 storage
+      // untouched as a backup, even after a successful v2 migration.
+      if(saved.version===1 && baseName==='原表配置' && mappingsEqual(workingMap,LEGACY_MAP)){
+        // Retain the user's existing writing, including letters previously typed
+        // into the textarea without an explicit glyph annotation.
+        const previousSpans=new Map(specialSpans.map(span=>[span.start,span]));
+        for(let pos=0;pos<currentText.length;){
+          const span=previousSpans.get(pos);
+          if(span){pos=span.end;continue;}
+          const letter=currentText[pos];
+          if(/^[A-Za-z]$/.test(letter))specialSpans.push({start:pos,end:pos+1,glyph:letter,text:letter});
+          pos++;
+        }
+        specialSpans=validateSpans(specialSpans,currentText);
+        workingMap={...DEFAULT_MAP};baselineMap={...DEFAULT_MAP};baseName='空白配置';
+        $('profile-status').textContent='旧版自动预填的默认映射已改为空白；已保存的配置栏位保留。';
+      }
+    }
+  }catch(_){}
+  mappingApi={
+    value:reading,resolve:resolveReading,
+    snapshot:()=>({workingMap:{...workingMap},baselineMap:{...baselineMap},baseName}),
+    restore:state=>{workingMap=checkedMapping(state.workingMap);baselineMap=checkedMapping(state.baselineMap);baseName=state.baseName;makeKeyboard();renderFinder();updateMappingBadge();persistMappings();}
+  };
+  buildPartControls();renderFinder();renderProfiles(true);updateMappingBadge();makeKeyboard();render();persistMappings();
+
+  </script>
+</body>
+</html>
