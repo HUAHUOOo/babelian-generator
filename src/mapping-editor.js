@@ -20,7 +20,7 @@
   function mappingsEqual(a,b) {return Object.keys(DEFAULT_MAP).every(key=>a[key]===b[key]);}
   function persistMappings() {
     try {
-      localStorage.setItem(MAPPING_STORE,JSON.stringify({version:2,workingMap,baselineMap,baseName,profileSlots,chosenSlot}));
+      STORAGE.setItem(MAPPING_STORE,JSON.stringify({version:2,workingMap,baselineMap,baseName,profileSlots,chosenSlot}));
       storageAvailable=true;
     } catch (_) {storageAvailable=false;}
   }
@@ -161,10 +161,13 @@
     renderFinder();
   }
   function buildPartControls() {
+    // Native image resolution must not determine the CSS size of the controls.
+    const partScale=60/Math.max(...PARTS.components.map(part=>Math.max(part.width,part.height)));
     for(const [i,part] of PARTS.components.entries()) {
       const root=document.createElement('div');root.className='part-control';
       const img=document.createElement('img');img.src=part.src;img.alt=part.label;
-      img.style.width=(part.width*1.05)+'px';img.style.height=(part.height*1.05)+'px';
+      img.width=part.width;img.height=part.height;
+      img.style.width=(part.width*partScale)+'px';img.style.height=(part.height*partScale)+'px';
       const symbolBox=document.createElement('div');symbolBox.className='part-symbol-box';symbolBox.append(img);
       const label=document.createElement('label');label.className='part-label';label.htmlFor='part-'+part.id;label.textContent=part.label;
       const stepper=document.createElement('div');stepper.className='part-stepper';
@@ -193,8 +196,8 @@
     const name=$('profile-name').value.trim()||'配置 '+(chosenSlot+1);
     profileSlots[chosenSlot]={name,mapping:{...workingMap},savedAt:new Date().toISOString()};
     baseName=name;baselineMap={...workingMap};persistMappings();renderProfiles(true);updateMappingBadge();
-    $('profile-status').textContent=storageAvailable?'已保存到栏位 '+(chosenSlot+1)+'：'+name+'。刷新后仍可载入。':'浏览器未允许本地保存；请使用“导出当前配置”保留文件备份。';
-    notify(storageAvailable?'配置已保存。':'请导出配置文件备份。');
+    $('profile-status').textContent=storageAvailable?'已写入栏位 '+(chosenSlot+1)+'：'+name+(runtime.integrated?'。ATO 同步结果以上方状态为准。':'。刷新后仍可载入。'):'保存未成功，请导出配置文件备份。';
+    notify(storageAvailable?(runtime.integrated?'栏位已更新，等待 ATO 同步。':'配置已保存。'):'请导出配置文件备份。');
   }
   function switchTool(tool) {
     for(const name of ['write','mapping']) {
@@ -227,11 +230,11 @@
     if(slot && useMapping(slot.mapping,{name:slot.name,baseline:slot.mapping})){$('profile-status').textContent='已载入 '+slot.name+'；现有巴别语字形保留，英文按此配置更新。';notify('已载入 '+slot.name+'。');openExistingConflict();}
   });
   $('profile-default').addEventListener('click',()=>{if(useMapping(DEFAULT_MAP,{name:'空白配置',baseline:DEFAULT_MAP}))notify('已新建空白配置。已保存栏位不受影响。');});
-  $('profile-export').addEventListener('click',()=>{
+  $('profile-export').addEventListener('click',async()=>{
     const name=$('profile-name').value.trim()||baseName;
     const payload={format:'ato-babelian-mapping',version:2,name,mapping:workingMap};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
-    downloadBlob(blob,'巴别语映射-'+name.replace(/[\\/:*?"<>|]/g,'_')+'.json');notify('当前映射已导出。');
+    try{await downloadBlob(blob,'巴别语映射-'+name.replace(/[\\/:*?"<>|]/g,'_')+'.json');notify('当前映射已导出。');}catch(error){notify(error.message);}
   });
   $('profile-import').addEventListener('click',()=>$('profile-file').click());
   $('profile-file').addEventListener('change',async event=>{
@@ -246,8 +249,9 @@
       renderProfiles(true);persistMappings();$('profile-status').textContent='已导入栏位 '+(chosenSlot+1)+'。点击“载入此配置”应用。'+(conflictGroups(mapping).length?'文件中存在重复对应，载入时将让你选择字形修改。':'');notify('配置已导入选中栏位。');
     }catch(error){notify('导入失败：'+error.message);}finally{event.target.value='';}
   });
-  try{
-    const saved=JSON.parse(localStorage.getItem(MAPPING_STORE)??localStorage.getItem(LEGACY_STORE));
+  function loadMappingState(saved){
+    workingMap={...DEFAULT_MAP};baselineMap={...DEFAULT_MAP};baseName='空白配置';profileSlots=Array(5).fill(null);chosenSlot=0;
+    try{
     if(saved && [1,2].includes(saved.version)){
       workingMap=checkedMapping(saved.workingMap);baselineMap=checkedMapping(saved.baselineMap);
       baseName=typeof saved.baseName==='string'?saved.baseName.slice(0,30):'工作配置';
@@ -271,9 +275,12 @@
         $('profile-status').textContent='旧版自动预填的默认映射已改为空白；已保存的配置栏位保留。';
       }
     }
-  }catch(_){}
+    }catch(_){}
+  }
+  try{loadMappingState(JSON.parse(STORAGE.getItem(MAPPING_STORE)??STORAGE.getItem(LEGACY_STORE)));}catch(_){}
   mappingApi={
     value:reading,resolve:resolveReading,
+    loadWorkspace:saved=>{loadMappingState(saved);renderProfiles(true);renderFinder();updateMappingBadge();persistMappings();},
     snapshot:()=>({workingMap:{...workingMap},baselineMap:{...baselineMap},baseName}),
     restore:state=>{workingMap=checkedMapping(state.workingMap);baselineMap=checkedMapping(state.baselineMap);baseName=state.baseName;makeKeyboard();renderFinder();updateMappingBadge();persistMappings();}
   };

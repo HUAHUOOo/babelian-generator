@@ -1,0 +1,29 @@
+    @android.webkit.JavascriptInterface public void saveBabelianFile(String id, String filename, String mime, String base64) {
+      if (id == null || id.length() > 120) return;
+      if (base64 == null || base64.length() > 12 * 1024 * 1024 ||
+          !("image/png".equals(mime) || "application/json".equals(mime))) {
+        notifyBabelianSave(id, false, false, "文件类型或大小不支持。"); return;
+      }
+      final byte[] bytes;
+      try {
+        bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+        if (bytes.length > 8 * 1024 * 1024) throw new IllegalArgumentException();
+      } catch (Exception error) { notifyBabelianSave(id, false, false, "文件数据无效或超过8MB。"); return; }
+      runOnUiThread(() -> {
+        if (babelianSaveId != null) { notifyBabelianSave(id, false, false, "请先完成上一次保存。"); return; }
+        String safeName = filename == null ? "babelian" : filename.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_");
+        if (safeName.length() > 120) safeName = safeName.substring(0, 120);
+        String extension = "image/png".equals(mime) ? ".png" : ".json";
+        if (!safeName.toLowerCase(java.util.Locale.ROOT).endsWith(extension)) safeName += extension;
+        babelianSaveId = id; babelianSaveBytes = bytes;
+        try {
+          Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+          intent.addCategory(Intent.CATEGORY_OPENABLE); intent.setType(mime);
+          intent.putExtra(Intent.EXTRA_TITLE, safeName);
+          startActivityForResult(intent, BABELIAN_SAVE_REQUEST);
+        } catch (Exception error) {
+          babelianSaveId = null; babelianSaveBytes = null;
+          notifyBabelianSave(id, false, false, String.valueOf(error.getMessage()));
+        }
+      });
+    }

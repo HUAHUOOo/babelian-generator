@@ -14,7 +14,7 @@
     button:disabled { opacity:.4; cursor:default; }
     button:focus-visible,summary:focus-visible { outline:3px solid #ad833a; outline-offset:4px; }
     .masthead { background:var(--green); color:#efeee2; }
-    .masthead-inner { max-width:1160px; margin:auto; padding:20px 36px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .masthead-inner { max-width:1160px; margin:auto; padding:20px 36px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; }
     .brand { display:flex; align-items:center; gap:13px; }
     .brand-symbol { height:32px; width:34px; object-fit:contain; filter:brightness(0) invert(.94); }
     .brand-name { font-family:Georgia,serif; font-size:16px; letter-spacing:2px; }
@@ -95,6 +95,14 @@
     details p { margin:8px 0 0; }
     .footer-code { white-space:nowrap; font-size:10px; letter-spacing:1.5px; margin-top:3px; }
     [hidden] { display:none!important; }
+    .host-bar { max-width:1088px; margin:18px auto 0; padding:12px 16px; border:1px solid var(--line); border-radius:8px; background:var(--paper); font-size:14px; }
+    .host-actions { display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin-top:8px; }
+    .host-actions a { color:var(--green); }
+    .host-actions .text-button { font-size:14px; }
+    .host-bar[data-status="conflict"],.host-bar[data-status="blocked"],.host-bar[data-status="error"] { border-color:#ae672e; background:#fff5e6; }
+    #host-status { margin:0; overflow-wrap:anywhere; line-height:1.6; }
+    #tool-surface[inert] { opacity:.5; }
+    @media(max-width:1160px) { .host-bar { margin-inline:14px; } }
     .workspace-tabs { display:flex; align-items:center; gap:7px; border-bottom:1px solid #d5dccc; margin-top:27px; padding-bottom:9px; flex-wrap:wrap; }
     .workspace-tab { border:0; padding:10px 15px; border-radius:7px; background:transparent; color:#6e7c62; }
     .workspace-tab[aria-selected="true"] { background:var(--green); color:white; }
@@ -212,10 +220,11 @@
   <header class="masthead">
     <div class="masthead-inner">
       <div class="brand"><img id="brand-glyph" class="brand-symbol" alt=""><span class="brand-name">AEON TRESPASS</span><span class="brand-divider"></span><span class="brand-detail">密文工坊</span></div>
-      <span class="offline">离线可用</span>
+      <span id="runtime-mode" class="offline">离线可用</span>
     </div>
   </header>
-  <main>
+  <section id="host-bar" class="host-bar" aria-label="运行模式与工作备份"><p id="host-status" role="status" aria-live="polite">正在载入…</p><div class="host-actions"><a id="host-home" hidden>返回主控台</a><a id="host-story" hidden>返回来源段落</a><button id="host-retry" type="button" class="text-button" hidden>重试同步</button><button id="host-reload" type="button" class="text-button" hidden>重新读取存档</button><button id="workspace-export" type="button" class="text-button" disabled>下载完整工作备份</button><button id="workspace-import" type="button" class="text-button" disabled>导入完整工作备份</button><input id="workspace-file" type="file" accept=".json,application/json" hidden></div></section>
+  <main id="tool-surface" inert>
     <div class="intro">
       <div><div class="eyebrow">CRYPTIC LANGUAGES / BABELIAN</div><h1>巴别语生成器</h1><p>用楔形逐字书写，让英文与密文同步呈现。</p></div>
       <button id="download" class="primary" type="button" disabled><span class="download-mark" aria-hidden="true">↓</span>下载图片</button>
@@ -261,10 +270,25 @@
   <div id="status" role="status" aria-live="polite"></div>
   <dialog id="conflict-dialog" aria-labelledby="conflict-title" aria-describedby="conflict-description"><h2 id="conflict-title">这个对应已被使用</h2><p id="conflict-description"></p><div id="conflict-options" class="conflict-options"></div><button id="conflict-cancel" type="button" class="secondary" autofocus>取消，暂不修改</button></dialog>
   <script>
+  __PLATFORM_JS__
+  __HOST_UI_JS__
+  (async function(){
   "use strict";
   const GLYPHS = __BABELIAN_GLYPHS__;
   const SPECIALS = {and:'AND', the:'THE', a_word:'A', OF:'OF', OR:'OR', '!/?':'!/?'};
   const PARTS = __BABELIAN_PARTS__;
+  const BUILD = __BUILD_CONFIG__;
+  const runtime = BabelianPlatform.create({...BUILD,ids:Object.keys(GLYPHS)});
+  const host = BabelianHost.connect(runtime);
+  window.BABELIAN_APP = {runtime,assets:{glyphs:GLYPHS,parts:PARTS}};
+  try{
+    await runtime.initialize();
+    if(runtime.integrated)await Promise.all([...Object.values(GLYPHS),...PARTS.components].map(asset=>new Promise((resolve,reject)=>{
+      const img=new Image();const timeout=setTimeout(()=>reject(Error('字形素材载入超时，请检查本地素材包。')),10000);
+      img.onload=()=>{clearTimeout(timeout);resolve();};img.onerror=()=>{clearTimeout(timeout);reject(Error('字形素材尚未安装完整，请复制配套 babelian/assets 文件夹后重新载入。'));};img.src=asset.src;
+    })));
+  }catch(error){host.fail(error);return;}
+  const STORAGE=runtime.storage;
   let mappingApi = null;
   function mappedValue(glyph) { return mappingApi ? mappingApi.value(glyph) : ''; }
   function glyphForLetter(letter) { return mappingApi ? mappingApi.resolve(letter) : null; }
@@ -310,7 +334,7 @@
     return img;
   }
   function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify({text:currentText, keyboardCase, specialSpans})); } catch (_) {}
+    try { STORAGE.setItem(STORE_KEY, JSON.stringify({text:currentText, keyboardCase, specialSpans})); } catch (_) {}
   }
   function rememberSelection() {
     selection = {start:input.selectionStart, end:input.selectionEnd};
@@ -565,6 +589,7 @@
     }
   });
   document.addEventListener('keydown', event => {
+    if(event.target.closest('#host-bar'))return;
     if($('conflict-dialog').open)return;
     if (event.isComposing || composing || event.altKey) return;
     if(event.target!==input && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
@@ -591,6 +616,7 @@
     }
   });
   document.addEventListener('keyup', event => {
+    if(event.target.closest('#host-bar'))return;
     if($('conflict-dialog').open)return;
     if (event.isComposing || composing || event.ctrlKey || event.metaKey || event.altKey) return;
     if(event.target!==input && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
@@ -603,12 +629,7 @@
     }))).then(entries => Object.fromEntries(entries));
     return imagesPromise;
   }
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a'); link.href = url; link.download = filename;
-    document.body.append(link); link.click(); link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-  }
+  function downloadBlob(blob, filename) { return BabelianHost.download(blob,filename); }
   async function exportPNG() {
     const text = currentText;
     const cipherLines = glyphLines();
@@ -658,16 +679,16 @@
       englishRows.forEach((row,i) => ctx.fillText(row,margin,englishY+i*42));
       const blob = await new Promise(resolve => canvas.toBlob(resolve,'image/png'));
       if (!blob) throw new Error('Image too large');
-      downloadBlob(blob,'巴别语-'+new Date().toISOString().replace(/[:.]/g,'-')+'.png');
+      await downloadBlob(blob,'巴别语-'+new Date().toISOString().replace(/[:.]/g,'-')+'.png');
       notify('图片已生成，包含巴别语和英文。');
-    } catch (error) { console.error(error); notify('图片导出失败，请缩短内容后重试。'); }
+    } catch (error) { console.error(error); notify('图片导出失败：'+error.message); }
     finally { button.disabled = !glyphLines().some(line=>line.length); }
   }
   $('download').addEventListener('click',exportPNG);
   window.addEventListener('resize',resizeEnglish);
   $('brand-glyph').src = GLYPHS.B.src;
   try {
-    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    const saved = JSON.parse(STORAGE.getItem(STORE_KEY));
     if (saved && typeof saved.text === 'string') {
       currentText = saved.text.replace(/\r\n?/g,'\n').slice(0,MAX_LENGTH);
       keyboardCase = saved.keyboardCase === 'lower' ? 'lower' : 'upper';
@@ -679,6 +700,21 @@
   input.setSelectionRange(selection.start,selection.end);
   makeKeyboard(); render();
   __MAPPING_EDITOR_JS__
+  function restoreWorkspace(value){
+    const writer=value.writer;
+    currentText=writer?.text||'';keyboardCase=writer?.keyboardCase||'upper';specialSpans=validateSpans(writer?.specialSpans||[],currentText);
+    input.value=currentText;selection={start:currentText.length,end:currentText.length};input.setSelectionRange(selection.start,selection.end);
+    history=[];future=[];mappingApi.loadWorkspace(value.mappings);makeKeyboard();render();save();
+  }
+  window.BABELIAN_APP.restoreWorkspace=restoreWorkspace;
+  host.ready({restore:restoreWorkspace});
+  if(runtime.integrated){
+    $('profile-status').textContent='工作及五个栏位随当前 ATO 账号与战役保存；同步结果以上方状态为准。';
+    const notes=document.querySelectorAll('.footer details p');
+    notes[2].textContent='工作及五个栏位随当前 ATO 账号与战役保存，同步状态显示在页面上方；不同账号不会自动读取独立版配置。可通过 JSON 导入旧映射，或用完整工作备份迁移五个栏位及书写草稿。字形素材从本地 assets 目录载入。';
+  }
+  })().catch(error=>{document.getElementById('host-status').textContent='工具载入失败：'+error.message;});
   </script>
+__ATO_ROUTER__
 </body>
 </html>

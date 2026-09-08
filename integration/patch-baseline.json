@@ -1,0 +1,26 @@
+{
+  "commit": "10dbbf5",
+  "files": {
+    "assets/page-focus-router.js": {
+      "beforeSha256": "3e98275396eb9a97d991d4bfdf0d21ad1d3173ff8a476d97286fc22ea6abad73"
+    },
+    "api/campaign-state.php": {
+      "beforeSha256": "1ef5a98d36322dd5247434798f07c7da623ffa5e13d587a67b2ddeac5e032e27"
+    },
+    "index.html": {
+      "beforeSha256": "382f8c6455f189813af96d23daa68e8fba5a339553c2fb2e9de4683f87eb35d2"
+    },
+    "story/index.html": {
+      "beforeSha256": "fbc5c5a14b18b92e1e10fafb92febf2cfe5dfa14dafebbaa345e4774f44ebd2e"
+    },
+    "story/assets/app.js": {
+      "beforeSha256": "335b947c92ae49113e1a6c85c22b9e59456ee4b86b8f390dc33fe0d59ed921be"
+    },
+    "tools/packaging/android/app/src/main/java/com/ato/assistant/LocalCampaignApi.java": {
+      "beforeSha256": "7c79a68fe9a19b9f7366af76d755a96750f339b22f87a33f67084ac90a6f072c"
+    },
+    "tools/packaging/android/app/src/main/java/com/ato/assistant/MainActivity.java": {
+      "beforeSha256": "d4a15a85a855717610a12cb1d3558aa34206ac6076354cf6f16c8506557019f9"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+  private static final int BABELIAN_SAVE_REQUEST = 1003;
+  private String babelianSaveId;
+  private byte[] babelianSaveBytes;
+
+  private void notifyBabelianSave(String id, boolean ok, boolean cancelled, String message) {
+    org.json.JSONObject result = new org.json.JSONObject();
+    try {
+      result.put("id", id); result.put("ok", ok); result.put("cancelled", cancelled); result.put("error", message);
+    } catch (org.json.JSONException ignored) {}
+    runOnUiThread(() -> webView.evaluateJavascript(
+      "window.BabelianNativeFileResult && window.BabelianNativeFileResult(" + result.toString() + ")", null));
+  }
+
+  private void finishBabelianSave(int resultCode, Intent data) {
+    String id = babelianSaveId; byte[] bytes = babelianSaveBytes;
+    babelianSaveId = null; babelianSaveBytes = null;
+    if (id == null) return;
+    if (resultCode != RESULT_OK || data == null || data.getData() == null) {
+      notifyBabelianSave(id, false, true, ""); return;
+    }
+    try (java.io.OutputStream output = getContentResolver().openOutputStream(data.getData(), "wt")) {
+      if (output == null || bytes == null) throw new java.io.IOException("无法创建文件。");
+      output.write(bytes); output.flush(); notifyBabelianSave(id, true, false, "");
+    } catch (Exception error) { notifyBabelianSave(id, false, false, String.valueOf(error.getMessage())); }
+  }

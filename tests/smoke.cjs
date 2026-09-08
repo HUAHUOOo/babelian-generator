@@ -13,6 +13,22 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   const page=await browser.newPage({viewport:{width:1440,height:1100},acceptDownloads:true});
   const errors=[];page.on('pageerror',error=>errors.push(String(error)));
   await page.goto(url);
+  await page.waitForFunction(()=>window.BABELIAN_APP?.restoreWorkspace);
+  const assetCheck=await page.evaluate(async()=>{
+   const {glyphs:GLYPHS,parts:PARTS}=window.BABELIAN_APP.assets;
+   const assets=[...Object.values(GLYPHS),...PARTS.components];
+   const checks=await Promise.all(assets.map(async asset=>{
+    const img=new Image();img.src=asset.src;await img.decode();
+    const canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;
+    const context=canvas.getContext('2d');context.drawImage(img,0,0);
+    const rgba=context.getImageData(0,0,img.width,img.height).data;
+    let antialiased=false,transparent=false,ink=false;
+    for(let i=3;i<rgba.length;i+=4){const a=rgba[i];antialiased ||= a>0&&a<255;transparent ||= a===0;ink ||= a===255;}
+    return img.naturalWidth===asset.width&&img.naturalHeight===asset.height&&antialiased&&transparent&&ink;
+   }));
+   return {count:checks.length,valid:checks.every(Boolean),minHeight:Math.min(...Object.values(GLYPHS).map(g=>g.height))};
+  });
+  assert.equal(assetCheck.count,64);assert(assetCheck.valid);assert(assetCheck.minHeight>=190);
   const text=()=>page.locator('#english-input').inputValue();
   const glyphs=()=>page.locator('.cipher-glyph').evaluateAll(nodes=>nodes.map(n=>n.dataset.glyph));
   const data=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),STORE);
@@ -34,6 +50,9 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   assert.equal(await page.locator('.special-key').count(),0);
   assert(Object.values((await data()).workingMap).every(value=>value===''));
   await editor();
+  for(const icon of await page.locator('.part-control img').all()){
+   const box=await icon.boundingBox();assert(box.height<=61&&box.width<=61);
+  }
   assert.equal(await page.locator('#candidate-position').textContent(),'1 / 2 个候选');
   assert.equal(await page.locator('#mapping-value').inputValue(),'');
   assert.equal(await page.locator('#candidate-meaning').textContent(),'未设置');
