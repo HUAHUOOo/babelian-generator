@@ -1,0 +1,8 @@
+{
+  "upstream": "https://github.com/keredson/wordninja",
+  "commit": "0421d148cd3d88e4f075aa9c703006f31809e9e5",
+  "source": "https://raw.githubusercontent.com/keredson/wordninja/0421d148cd3d88e4f075aa9c703006f31809e9e5/wordninja/wordninja_words.txt.gz",
+  "sha256": "5b3c6c418fea7188b3919c47829ff94bc010f8336c74cbb929cc20d0c9d9e901",
+  "license": "MIT",
+  "description": "Frequency-ranked English word data. No upstream executable code imported."
+}

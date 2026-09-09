@@ -1,11 +1,12 @@
 {
   "name": "babelian-generator",
-  "version": "1.1.0",
+  "version": "1.4.2",
   "private": true,
   "description": "Offline Babelian glyph keyboard and custom mapping editor for Aeon Trespass: Odyssey",
   "scripts": {
     "build": "node scripts/build.cjs",
-    "test": "node tests/platform.cjs",
+    "test": "node tests/platform.cjs && node tests/ocr.cjs && node tests/text-format.cjs && node tests/ocr-correction.cjs && node tests/translation.cjs && node tests/ocr-layout.cjs && node tests/ato-package.cjs",
+    "check:ato": "node scripts/check-ato.cjs",
     "test:browser": "node tests/smoke.cjs"
   },
   "engines": { "node": ">=20" },

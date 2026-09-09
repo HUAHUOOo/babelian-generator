@@ -158,7 +158,10 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   console.log('PASS: partial/empty JSON round-trip; invalid imports do not mutate current mapping.');
 
   // Preserve saved v1 profiles and leave their original storage bytes as backup.
-  const legacyMap=await page.evaluate(()=>({...Object.fromEntries(Object.keys(GLYPHS).map(key=>[key,SPECIALS[key]??key]))}));
+  const legacyMap=await page.evaluate(()=>{
+   const specials={and:'AND',the:'THE',a_word:'A',OF:'OF',OR:'OR','!/?':'!/?'};
+   return Object.fromEntries(Object.keys(window.BABELIAN_APP.assets.glyphs).map(key=>[key,specials[key]??key]));
+  });
   const legacy={version:1,workingMap:legacyMap,baselineMap:legacyMap,baseName:'原表配置',chosenSlot:0,profileSlots:[{name:'原有保存栏位',mapping:{...legacyMap,S:'HELLO'},savedAt:'2026-09-08'},null,null,null,null]};
   await page.evaluate(({old,key,payload})=>{
    localStorage.setItem(old,JSON.stringify(payload));localStorage.removeItem(key);

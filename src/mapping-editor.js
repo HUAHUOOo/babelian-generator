@@ -38,6 +38,7 @@
     return matches.length===1 ? matches[0] : null;
   }
   function updateMappingBadge() {
+    window.dispatchEvent(new Event('babelian-mapping-change'));
     const dirty=!mappingsEqual(workingMap,baselineMap);
     $('active-map-label').textContent='当前映射：'+baseName+(dirty?' · 已修改，待存入栏位':'');
     const conflicts=conflictGroups();
@@ -200,14 +201,16 @@
     notify(storageAvailable?(runtime.integrated?'栏位已更新，等待 ATO 同步。':'配置已保存。'):'请导出配置文件备份。');
   }
   function switchTool(tool) {
-    for(const name of ['write','mapping']) {
+    for(const name of ['write','mapping','decode']) {
       $('tab-'+name).setAttribute('aria-selected',String(name===tool));
       $('panel-'+name).hidden=name!==tool;
     }
     if(tool==='mapping')renderFinder();
+    if(tool==='decode')window.BABELIAN_APP.ocr?.refresh();
   }
   $('tab-write').addEventListener('click',()=>switchTool('write'));
   $('tab-mapping').addEventListener('click',()=>switchTool('mapping'));
+  $('tab-decode').addEventListener('click',()=>switchTool('decode'));
   $('candidate-prev').addEventListener('click',()=>{const list=candidateList();chosenGlyph=list[(list.indexOf(chosenGlyph)-1+list.length)%list.length];renderFinder();});
   $('candidate-next').addEventListener('click',()=>{const list=candidateList();chosenGlyph=list[(list.indexOf(chosenGlyph)+1)%list.length];renderFinder();});
   $('filter-reset').addEventListener('click',()=>{componentCounts=[0,0,0,0,0,0];showAllGlyphs=false;renderFinder();});

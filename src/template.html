@@ -214,6 +214,7 @@
       .footer-code { display:none; }
     }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; } }
+    __OCR_CSS__
   </style>
 </head>
 <body>
@@ -240,7 +241,7 @@
       </div>
     </section>
 
-    <div class="workspace-tabs" role="tablist" aria-label="书写与解读工具"><button id="tab-write" class="workspace-tab" role="tab" aria-selected="true" aria-controls="panel-write" type="button">字形键盘</button><button id="tab-mapping" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-mapping" type="button">部件筛选与映射</button><span id="active-map-label">当前映射：空白配置</span></div>
+    <div class="workspace-tabs" role="tablist" aria-label="书写与解读工具"><button id="tab-write" class="workspace-tab" role="tab" aria-selected="true" aria-controls="panel-write" type="button">字形键盘</button><button id="tab-mapping" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-mapping" type="button">部件筛选与映射</button><button id="tab-decode" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-decode" type="button">截图破解</button><span id="active-map-label">当前映射：空白配置</span></div>
     <div id="mapping-warning" class="conflict-banner" hidden><span id="mapping-warning-text"></span><button id="resolve-conflicts" type="button" class="text-button">选择字形并处理</button></div>
     <section id="panel-write" class="keyboard-section" role="tabpanel" aria-labelledby="tab-write">
       <div class="keyboard-top"><h2 class="keyboard-title" id="keyboard-title">字形键盘<span>QWERTY / 26 LETTERS</span></h2><div class="case-switch" role="group" aria-label="键盘字形大小写"><button type="button" id="case-upper" aria-pressed="true">大写 A–Z</button><button type="button" id="case-lower" aria-pressed="false">小写 a–z</button></div></div>
@@ -251,6 +252,7 @@
       <div class="utility-keys"><button id="backspace" type="button" class="utility-key"><span class="symbol" aria-hidden="true">⌫</span>退格</button><button id="space" type="button" class="utility-key">空格<small>仅英文留空</small></button><button id="newline" type="button" class="utility-key"><span class="symbol" aria-hidden="true">↵</span>换行</button></div>
       <div class="key-info"><span>电脑键盘大小写跟随 Caps Lock / Shift。</span><span>切换字形不改变已输入的内容。</span></div>
     </section>
+    __OCR_HTML__
     <section id="panel-mapping" role="tabpanel" aria-labelledby="tab-mapping" hidden>
       <div class="mapping-layout">
         <div class="mapping-card">
@@ -272,6 +274,15 @@
   <script>
   __PLATFORM_JS__
   __HOST_UI_JS__
+  __OCR_ENGINE_JS__
+  __OCR_CORRECTION_JS__
+  __TRANSLATION_JS__
+  __TEXT_FORMAT_JS__
+  /* Offline English frequency vocabulary: https://github.com/keredson/wordninja
+  __WORD_LICENSE__
+  */
+  const BABELIAN_ENGLISH_WORDS=__ENGLISH_WORD_DATA__;
+  __OCR_UI_JS__
   (async function(){
   "use strict";
   const GLYPHS = __BABELIAN_GLYPHS__;
@@ -589,7 +600,8 @@
     }
   });
   document.addEventListener('keydown', event => {
-    if(event.target.closest('#host-bar'))return;
+    if(event.target.closest('#host-bar,#panel-decode'))return;
+    if(event.target!==input&&!$('panel-decode').hidden)return;
     if($('conflict-dialog').open)return;
     if (event.isComposing || composing || event.altKey) return;
     if(event.target!==input && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
@@ -616,7 +628,8 @@
     }
   });
   document.addEventListener('keyup', event => {
-    if(event.target.closest('#host-bar'))return;
+    if(event.target.closest('#host-bar,#panel-decode'))return;
+    if(event.target!==input&&!$('panel-decode').hidden)return;
     if($('conflict-dialog').open)return;
     if (event.isComposing || composing || event.ctrlKey || event.metaKey || event.altKey) return;
     if(event.target!==input && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
@@ -700,6 +713,16 @@
   input.setSelectionRange(selection.start,selection.end);
   makeKeyboard(); render();
   __MAPPING_EDITOR_JS__
+  window.BABELIAN_APP.ocr=BabelianOCRUI.mount({glyphs:GLYPHS,wordData:BABELIAN_ENGLISH_WORDS,getMapping:()=>mappingApi.snapshot().workingMap,
+    editMapping:glyph=>{switchTool('mapping');selectGlyph(glyph);$('mapping-value').focus();},
+    append:payload=>{
+      if(!payload.text)return;
+      const prefix=currentText&&!currentText.endsWith('\n')?'\n':'',offset=currentText.length+prefix.length;
+      const next=currentText+prefix+payload.text;
+      if(next.length>MAX_LENGTH){notify('追加后超过6000字符，请分段识别或先缩短书写区。');return;}
+      const spans=[...specialSpans,...payload.spans.map(s=>({...s,start:s.start+offset,end:s.end+offset}))];
+      applyText(next,next.length,next.length,true,spans);notify('已追加到书写区；原内容保留，可撤销。');
+    },notify});
   function restoreWorkspace(value){
     const writer=value.writer;
     currentText=writer?.text||'';keyboardCase=writer?.keyboardCase||'upper';specialSpans=validateSpans(writer?.specialSpans||[],currentText);

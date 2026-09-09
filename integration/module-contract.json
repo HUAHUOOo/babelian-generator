@@ -1,0 +1,15 @@
+{
+  "contractVersion": 1,
+  "module": "babelian",
+  "entry": "babelian/index.html",
+  "assetCount": 64,
+  "hashStage": "before-host-packaging",
+  "testedAssistantCommit": "10dbbf5",
+  "storage": {"section": "babelian", "documentVersion": 1, "mappingVersion": 2, "screenshotPersistence": false},
+  "features": ["glyph-keyboard", "five-mapping-slots", "image-only-ocr", "manual-rebox", "overlap-rematch-20-percent", "released-stroke-reflow", "offline-word-spacing", "editable-punctuation", "opt-in-chinese-translation", "collapsed-translation-panel"],
+  "requiredHostFiles": ["assets/page-focus-router.js", "api/campaign-state.php"],
+  "optionalTranslation": {"endpoint": "https://api.mymemory.translated.net/get", "method": "GET", "credentials": "omit", "userConsentRequired": true, "sendsImages": false},
+  "android": {"input": "WebChromeClient.onShowFileChooser", "saveBridge": "ATOAndroid.saveBabelianFile", "needsRepackaging": true},
+  "upgradeFrom": "1.1.0",
+  "hostPatchChangedSince": "1.1.0"
+}

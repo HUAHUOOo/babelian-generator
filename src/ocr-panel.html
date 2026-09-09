@@ -1,0 +1,65 @@
+    <section id="panel-decode" role="tabpanel" aria-labelledby="tab-decode" hidden>
+      <div class="ocr-card">
+        <h2>截图破解</h2>
+        <p class="ocr-help">上传或粘贴截图，框选巴别语区域。先按当前映射逐字输出，再生成可编辑的分词断句建议；自动整理不改变识别字母或大小写。</p>
+        <fieldset id="ocr-controls">
+          <legend class="ocr-sr">图片与识别设置</legend>
+          <div class="ocr-toolbar"><button id="ocr-upload" type="button" class="primary">选择截图</button><input id="ocr-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><span id="ocr-file-info">尚未选择图片</span></div>
+          <p class="ocr-help">支持 PNG / JPG / WebP，最多16MB；也可拖入图片或在此页粘贴。仅本机处理，刷新后不保留截图和校正结果。</p>
+          <div id="ocr-image-area" hidden>
+            <div id="ocr-rebox-bar" class="ocr-rebox-bar" hidden>
+              <p id="ocr-rebox-status" role="status" aria-live="polite"></p>
+              <div class="ocr-toolbar"><button id="ocr-rebox-apply" type="button" class="primary" disabled>应用新框</button><button id="ocr-rebox-cancel" type="button" class="secondary">取消重新框选</button></div>
+              <p class="ocr-help">在金色识别区域内拖出完整字形，蓝色虚线为新框。旧框移出的笔画自动交给本行邻近区域重新识别；新框覆盖前后原框超过20%时也会局部重匹配。新框保持固定，其余区域不动。Esc 可取消。</p>
+            </div>
+            <div class="ocr-canvas-wrap"><canvas id="ocr-preview" width="1" height="1" aria-label="截图预览；拖动框选密码区域，或使用下方坐标框选。点击识别框可复核。"></canvas></div>
+            <div class="ocr-toolbar"><button id="ocr-full" type="button" class="secondary">选中全图</button><button id="ocr-rotate" type="button" class="secondary">顺时针旋转90°</button><button id="ocr-forget" type="button" class="text-button">清除本次截图</button></div>
+            <details class="ocr-crop-details"><summary>精确设置框选区域（当前图像像素）</summary><div class="ocr-toolbar ocr-coordinates"><label>X <input id="ocr-crop-x" type="number" min="0" step="1"></label><label>Y <input id="ocr-crop-y" type="number" min="0" step="1"></label><label>宽 <input id="ocr-crop-width" type="number" min="1" step="1"></label><label>高 <input id="ocr-crop-height" type="number" min="1" step="1"></label><button id="ocr-crop-apply" type="button" class="secondary">应用框选</button></div></details>
+          </div>
+          <div class="ocr-settings">
+            <label>字色 <select id="ocr-polarity"><option value="auto">自动判断</option><option value="dark">深字浅底</option><option value="light">浅字深底</option></select></label>
+            <label><input id="ocr-single" type="checkbox"> 框选内容仅一行</label>
+            <label><input id="ocr-auto" type="checkbox" checked> 自动阈值</label>
+            <label>阈值 <input id="ocr-threshold" type="range" min="0" max="254" value="150" disabled><output id="ocr-threshold-value">150</output></label>
+          </div>
+        </fieldset>
+        <div class="ocr-toolbar"><button id="ocr-run" class="primary" type="button" disabled>识别所选区域</button><button id="ocr-cancel" class="secondary" type="button" hidden>取消识别</button><span id="ocr-status" role="status" aria-live="polite">优先使用清晰、端正的截图，并排除英文、插图和边框。</span></div>
+      </div>
+      <div id="ocr-inspection" class="ocr-card" hidden>
+        <h2>逐字复核</h2>
+        <p id="ocr-summary" class="ocr-help"></p>
+        <p class="ocr-help">橙色项需要确认；[?] 为待确认，[未映射] 为已识别但尚无对应。绿色项也建议与原图核对，尤其注意字形分割。</p>
+        <details class="ocr-token-details" open><summary>逐字复核 · 点击一项查看原图与候选</summary><div id="ocr-tokens"></div></details>
+        <section id="ocr-review" class="ocr-review" aria-labelledby="ocr-review-title" hidden>
+          <h3 id="ocr-review-title">复核字形</h3>
+          <div class="ocr-review-images"><figure><canvas id="ocr-piece" aria-label="选中字形的原图裁片"></canvas><figcaption id="ocr-piece-caption">原图裁片</figcaption></figure><figure><img id="ocr-choice-image" alt="选中的候选字形"><figcaption>候选模板</figcaption></figure></div>
+          <div id="ocr-candidates" class="ocr-candidates" aria-label="图形匹配候选"></div>
+          <div class="ocr-toolbar"><label>全部字形 <select id="ocr-choice" aria-label="手动选择字形"></select></label><button id="ocr-confirm" type="button" class="primary">确认使用此字形</button><button id="ocr-unknown" type="button" class="secondary">标为待确认</button><button id="ocr-edit-map" type="button" class="text-button">编辑此字形的映射</button></div>
+          <details id="ocr-segmentation" class="ocr-crop-details"><summary>分割不正确？</summary><div class="ocr-toolbar"><label>从左侧 <input id="ocr-split-at" type="number" min="10" max="90" value="50"> % 处</label><button id="ocr-split" type="button" class="secondary">拆成两个字形</button><button id="ocr-merge" type="button" class="secondary">与本行下一项合并</button><button id="ocr-rebox" type="button" class="secondary">在截图中重新框选此字形</button></div><p class="ocr-help">重新框选会回收移出旧框的笔画，与邻近项一起重识别；新框重叠其他框超过20%也会触发。映射不变，请复核新候选。</p></details>
+        </section>
+      </div>
+      <div id="ocr-results" class="ocr-card" hidden>
+        <h2>识别结果</h2>
+        <label class="ocr-output-label" for="ocr-output">逐字英文 · 跟随当前映射，未经分词</label><textarea id="ocr-output" readonly spellcheck="false" rows="4" aria-label="截图识别英文"></textarea>
+        <div class="ocr-toolbar"><label><input id="ocr-join" type="checkbox"> 合并原图换行</label><button id="ocr-copy" type="button" class="secondary">复制逐字英文</button><button id="ocr-append" type="button" class="secondary">追加逐字英文</button></div>
+        <section class="ocr-format-section" aria-label="自动分词断句建议">
+          <div class="ocr-toolbar"><label><input id="ocr-format-enabled" type="checkbox" checked> 识别后自动分词断句</label><label><input id="ocr-punctuate" type="checkbox" checked> 推测标点与句界</label><button id="ocr-format-run" type="button" class="secondary">重新生成建议</button></div>
+          <div id="ocr-formatted-block">
+            <label class="ocr-output-label" for="ocr-formatted">整理后的英文 · 可手动调整空格和标点</label><textarea id="ocr-formatted" spellcheck="false" rows="5" maxlength="100000" aria-describedby="ocr-format-help ocr-format-status"></textarea>
+            <p id="ocr-format-status" class="ocr-help" role="status" aria-live="polite"></p>
+            <div class="ocr-toolbar"><button id="ocr-formatted-copy" type="button" class="secondary">复制整理文本</button><button id="ocr-formatted-append" type="button" class="secondary">将整理文本追加到书写区</button><button id="ocr-translate-toggle" type="button" class="secondary" aria-controls="ocr-translate-panel" aria-expanded="false">中文机翻</button></div>
+            <section id="ocr-translate-panel" class="ocr-translation" aria-label="英文机翻为中文" hidden>
+              <h3>中文机翻 · 联网，可选</h3>
+              <p id="ocr-translate-help" class="ocr-help">使用 MyMemory（含机器翻译及译文库匹配），仅供参考，游戏专名和规则需复核。只在点击下方按钮后发送当前“整理后的英文”，不发送截图或映射；长文本分段发送，每次最多5000字符，受服务额度及网络限制。请勿发送敏感内容。<a href="https://mymemory.translated.net/doc/spec.php" target="_blank" rel="noopener noreferrer">服务说明</a></p>
+              <label class="ocr-consent"><input id="ocr-translate-consent" type="checkbox"> 我同意将当前整理后的英文发送给 MyMemory 翻译</label>
+              <div class="ocr-toolbar"><button id="ocr-translate-run" type="button" class="primary" disabled>将当前英文翻译为中文</button><button id="ocr-translate-cancel" type="button" class="secondary" hidden>取消翻译</button><button id="ocr-translate-copy" type="button" class="secondary" disabled>复制中文译文</button></div>
+              <p id="ocr-translate-status" class="ocr-help" role="status" aria-live="polite">尚未翻译。先调整上方英文，再点击翻译。</p>
+              <label class="ocr-output-label" for="ocr-translation">中文译文 · 不替换原文</label><textarea id="ocr-translation" rows="5" readonly aria-describedby="ocr-translate-help ocr-translate-status" placeholder="译文将在这里显示"></textarea>
+              <details id="ocr-translate-source-details" class="ocr-crop-details" hidden><summary>查看本次翻译采用的英文（含手动断句和标点）</summary><textarea id="ocr-translate-source" rows="4" readonly aria-label="本次翻译的英文快照"></textarea></details>
+            </section>
+            <details class="ocr-crop-details"><summary>专有名词分错？补充分词词语</summary><label for="ocr-extra-words" class="ocr-output-label">可选，用逗号或换行分隔；只影响本次分词，不更改映射</label><textarea id="ocr-extra-words" rows="2" maxlength="3000" placeholder="例如 Dahaka, Dionysian, Thnitos, Khrusos" spellcheck="false"></textarea></details>
+          </div>
+          <p id="ocr-format-help" class="ocr-help">原图字距与行尾不能直接还原词间空格和句号。下方建议由本机词频表和规则推测，会接续跨行单词；可能分错词或句子，请核对。不会补全 [?] 或 [未映射]。上方逐字原文始终保留，修改字母请到逐字复核或映射中操作。</p>
+        </section>
+      </div>
+    </section>
