@@ -1,24 +1,25 @@
 /* Pixels stay on device. Online translation is a separate, explicit text-only
    opt-in; only "append to writer" enters local/ATO draft persistence. */
-globalThis.BabelianOCRUI={mount({glyphs,wordData,getMapping,editMapping,append,notify}){
+globalThis.BabelianOCRUI={mount({glyphs,wordData,getMapping,editMapping,append,notify,samples}){
   const $=id=>document.getElementById(id),OCR=BabelianOCR,ids=Object.keys(glyphs);
   const panel=$('panel-decode'),preview=$('ocr-preview'),ctx=preview.getContext('2d');
   let source=null,crop=null,result=null,resultImage=null,selected=null,drag=null,rebox=null;
   let templatesPromise=null,templates=null,prepared=null,worker=null,job=0,loading=0,busy=false;
+  let deepSuggestion=null;
   const formatter=BabelianTextFormat.create(wordData),formattedDraft=BabelianTextFormat.createDraft(formatter);
   const translation=BabelianTranslation.createSession(BabelianTranslation.createClient(),renderTranslation);
   const label=id=>'G'+String(ids.indexOf(id)+1).padStart(2,'0');
   const mapping=()=>getMapping();
-  const options=()=>({polarity:$('ocr-polarity').value,threshold:$('ocr-auto').checked?null:Number($('ocr-threshold').value),oneLine:$('ocr-single').checked});
+  const options=()=>({polarity:$('ocr-polarity').value,threshold:$('ocr-auto').checked?null:Number($('ocr-threshold').value),oneLine:$('ocr-single').checked,detail:$('ocr-detail').checked});
   const outputOptions=()=>({joinLines:$('ocr-join').checked});
   function message(text){$('ocr-status').textContent=text;}
   function imageElement(id){const img=document.createElement('img');img.src=glyphs[id].src;img.alt=label(id);return img;}
-  function setBusy(value){busy=value;$('ocr-run').disabled=value||!source;$('ocr-cancel').hidden=!value;$('ocr-controls').disabled=value;panel.setAttribute('aria-busy',String(value));}
+  function setBusy(value){busy=value;$('ocr-run').disabled=value||!source;$('ocr-cancel').hidden=!value;$('ocr-controls').disabled=value;$('ocr-deep').disabled=value;panel.setAttribute('aria-busy',String(value));}
   function cancel(){job++;if(worker){worker.terminate();worker=null;}setBusy(false);}
   function clearResult(){
     formattedDraft.clear();$('ocr-formatted').value='';$('ocr-format-status').textContent='';
     translation.invalidate('识别结果已清除，请重新整理后翻译。');endRebox();
-    result=null;resultImage=null;selected=null;$('ocr-results').hidden=true;$('ocr-review').hidden=true;$('ocr-inspection').hidden=true;
+    result=null;resultImage=null;selected=null;deepSuggestion=null;$('ocr-deep-candidates').replaceChildren();$('ocr-deep-status').textContent='';$('ocr-results').hidden=true;$('ocr-review').hidden=true;$('ocr-inspection').hidden=true;
     setTranslationOpen(false);
     $('ocr-output').value='';$('ocr-tokens').replaceChildren();$('ocr-candidates').replaceChildren();
     $('ocr-piece').width=1;$('ocr-piece').height=1;$('ocr-choice-image').removeAttribute('src');
@@ -146,7 +147,7 @@ globalThis.BabelianOCRUI={mount({glyphs,wordData,getMapping,editMapping,append,n
         }catch(e){reject(Error('无法读取本地字形模板：'+e.message));}
       };img.onerror=()=>reject(Error('字形模板载入失败，请检查素材是否完整。'));img.src=glyphs[id].src;
     }))).catch(e=>{templatesPromise=null;throw e;});
-    templates=await templatesPromise;prepared=OCR.prepareTemplates(templates);return templates;
+    templates=await templatesPromise;prepared=OCR.prepareTemplates(templates,options());return templates;
   }
   function progress(p){message(`正在按图形匹配：${p.done} / ${p.total} 行…`);}
   async function recognize(){
@@ -206,6 +207,16 @@ globalThis.BabelianOCRUI={mount({glyphs,wordData,getMapping,editMapping,append,n
   function active(){return selected&&result?.lines[selected.line]?.tokens[selected.token];}
   function renderReview(){
     const token=active();if(!token)return;$('ocr-review').hidden=false;
+    if(deepSuggestion&&(deepSuggestion.token!==token||deepSuggestion.signature!==JSON.stringify(token)))deepSuggestion=null;
+    $('ocr-deep-candidates').replaceChildren();$('ocr-deep-status').textContent='';
+    if(deepSuggestion){
+      const answer=deepSuggestion.answer;
+      $('ocr-deep-status').textContent=answer.candidates.length?'已对比 '+answer.uniqueMasks+' 种有效阈值图和粗细尺度。候选需确认，支持次数不是正确率。':'此框内没有可靠候选，请检查分割。';
+      for(const c of answer.candidates){
+        const b=document.createElement('button');b.type='button';b.className='ocr-candidate';b.append(imageElement(c.id));const caption=document.createElement('span');caption.textContent=label(c.id)+' · '+Math.round(c.score*100)+' 分 · '+c.support+'/'+c.variantCount+' 方案首选';b.append(caption);
+        b.addEventListener('click',()=>{if(active()!==token||JSON.stringify(token)!==deepSuggestion?.signature)return;$('ocr-choice').value=c.id;showChoice();});$('ocr-deep-candidates').append(b);
+      }
+    }
     $('ocr-review-title').textContent=`复核第 ${selected.line+1} 行 · 第 ${selected.token+1} 项`;
     const b=token.box,canvas=$('ocr-piece');canvas.width=b.width;canvas.height=b.height;
     const tmp=document.createElement('canvas');tmp.width=resultImage.width;tmp.height=resultImage.height;tmp.getContext('2d').putImageData(resultImage,0,0);
@@ -224,7 +235,26 @@ globalThis.BabelianOCRUI={mount({glyphs,wordData,getMapping,editMapping,append,n
     $('ocr-choice').value=token.id||ids[0];showChoice();
     $('ocr-merge').disabled=selected.token>=result.lines[selected.line].tokens.length-1;
   }
-  function showChoice(){const id=$('ocr-choice').value;$('ocr-choice-image').src=glyphs[id].src;$('ocr-choice-image').alt=label(id);}
+  function showChoice(){const id=$('ocr-choice').value;$('ocr-choice-image').src=glyphs[id].src;$('ocr-choice-image').alt=label(id);$('ocr-add-sample').disabled=!samples||!active()?.manual||active().id!==id;}
+  $('ocr-deep').addEventListener('click',async()=>{
+    const token=active();if(!token||busy||rebox)return;const signature=JSON.stringify(token),version=++job;setBusy(true);message('正在对当前字形深度比对…');
+    try{await loadTemplates();await new Promise(resolve=>setTimeout(resolve,0));if(version!==job)return;
+      const answer=BabelianDeep.deep(resultImage,token.box,templates,{threshold:result.threshold,polarity:result.polarity,excludedBoxes:token.excludedBoxes||[],cancelled:()=>version!==job});
+      if(version!==job||active()!==token||signature!==JSON.stringify(token))return;
+      deepSuggestion={token,signature,answer};renderReview();message('深度候选已列出；选择后点击“确认使用此字形”。原结果未改变。');
+    }catch(e){if(version===job)message('深度识别未应用：'+e.message);}finally{if(version===job)setBusy(false);}
+  });
+  if(samples)GlyphSamplesUI.mount({library:samples,container:$('ocr-samples'),language:'babelian',labels:()=>Object.fromEntries(ids.map(id=>[id,label(id)+' · '+(mapping()[id]||'未映射')])),download:(blob,name)=>BabelianHost.download(blob,name)});
+  $('ocr-add-sample').addEventListener('click',()=>{
+    const token=active();if(!samples||!token?.manual||token.id!==$('ocr-choice').value||busy)return;
+    try{
+      const b=token.box;if(b.width>1200||b.height>1200)throw Error('请先框选单个字形，裁片最长边不超过1200像素。');
+      const whole=document.createElement('canvas');whole.width=resultImage.width;whole.height=resultImage.height;whole.getContext('2d').putImageData(resultImage,0,0);
+      const crop=document.createElement('canvas');crop.width=b.width;crop.height=b.height;crop.getContext('2d').drawImage(whole,b.x,b.y,b.width,b.height,0,0,b.width,b.height);
+      const excludedBoxes=(token.excludedBoxes||[]).map(p=>{const x=Math.max(0,p.x-b.x),y=Math.max(0,p.y-b.y);return {x,y,width:Math.max(0,Math.min(b.width,p.x+p.width-b.x)-x),height:Math.max(0,Math.min(b.height,p.y+p.height-b.y)-y)};}).filter(p=>p.width&&p.height);
+      samples.add({language:'babelian',glyphId:token.id,image:crop.toDataURL('image/png'),annotation:{box:{x:0,y:0,width:b.width,height:b.height},excludedBoxes}});message('已加入确认样本；请在样本库中导出保存。不会自动训练。');
+    }catch(e){message(e.message);}
+  });
   $('ocr-choice').addEventListener('change',showChoice);
   $('ocr-confirm').addEventListener('click',()=>{const t=active();if(!t)return;endRebox();t.id=$('ocr-choice').value;t.manual=true;t.certain=false;renderResults();draw();});
   $('ocr-unknown').addEventListener('click',()=>{const t=active();if(!t)return;endRebox();t.manual=false;t.certain=false;renderResults();draw();});
@@ -338,5 +368,5 @@ globalThis.BabelianOCRUI={mount({glyphs,wordData,getMapping,editMapping,append,n
   });
   window.addEventListener('babelian-mapping-change',renderResults);
   window.addEventListener('resize',draw);
-  return {refresh:()=>{renderResults();draw();}};
+  return {refresh:()=>{renderResults();draw();},pause:()=>{loading++;cancel();translation.cancel();}};
 }};

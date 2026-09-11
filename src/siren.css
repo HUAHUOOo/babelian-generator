@@ -1,0 +1,69 @@
+    #panel-siren {margin-top:24px;font-size:16px;line-height:1.6}
+    #panel-siren [hidden] {display:none!important}
+    #siren-tools {border:0;padding:0;margin:0;min-width:0}
+    .siren-heading,.siren-actions {display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .siren-heading {justify-content:space-between}
+    .siren-heading h1 {margin:0;font-size:28px}
+    .siren-heading span,.siren-note {font-size:14px;color:#637168;line-height:1.7}
+    .siren-note {margin:10px 0}
+    .siren-card {padding:20px;background:var(--paper);border:1px solid var(--line);border-radius:10px;margin:14px 0;min-width:0}
+    .siren-card h3 {font-size:17px;margin:0 0 10px}
+    .siren-actions {margin:10px 0}
+    #panel-siren .text-button,#panel-siren label,#panel-siren .secondary {font-size:14px}
+    #panel-siren input,#panel-siren textarea {font:inherit;max-width:100%}
+    #panel-siren textarea {width:100%;display:block;padding:10px;border:1px solid #c7cfc5;border-radius:6px;background:white;resize:vertical;font-family:Consolas,monospace;line-height:1.65;margin-top:7px}
+    #panel-siren input[type=number] {width:100%;padding:6px;border:1px solid #c7cfc5;border-radius:5px;background:white}
+    .siren-layout {display:block}
+    .siren-layout .siren-card {margin:0}
+    .siren-groups {display:flex;flex-wrap:nowrap;gap:0;overflow-x:auto;padding:4px 0;align-items:stretch;width:100%;min-width:0}
+    .siren-group-toolbar {display:flex;flex-direction:column;align-items:stretch;gap:10px;min-width:0;margin:14px 0}
+
+    .siren-group-actions {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .siren-group-actions button {white-space:nowrap}
+
+
+    #siren-precision-panel {max-width:760px;margin:12px auto 0}
+    .siren-groups button {min-width:100px;width:100px;flex:0 0 100px;border:1px solid #bdc9bd;background:#fffdf7;border-radius:0;margin-left:-1px;padding:8px;color:var(--ink)}
+    .siren-groups button:first-child {margin-left:0;border-radius:8px 0 0 8px}
+    .siren-groups button:last-child {border-radius:0 8px 8px 0}
+    .siren-groups button:only-child {border-radius:8px}
+    .siren-groups button span {display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .siren-groups canvas {display:block;width:80px;height:80px;margin:auto}
+    .siren-groups button[aria-pressed=true],.siren-items button[aria-pressed=true],#panel-siren .secondary[aria-pressed=true] {border:2px solid #a57b37;background:#f3ead7}
+    #siren-stage {display:block;width:100%;max-width:760px;margin:0 auto;height:auto;touch-action:none;background:#f7f7f0;border:1px solid var(--line);border-radius:6px}
+    .siren-source-wrap {max-height:550px;overflow:auto}
+    #siren-source-canvas {display:block;width:100%;height:auto;background:#e4e5de}
+    .siren-selection-bar {display:flex;align-items:center;flex-wrap:wrap;gap:10px;max-width:760px;margin:14px auto 0;min-width:0}
+    .siren-items {display:flex;flex-wrap:nowrap;gap:8px;min-height:45px;min-width:0;overflow-x:auto;flex:0 1 auto}
+    .siren-items button {border:1px solid #c3ccc0;border-radius:6px;background:#f7f7f0;min-width:46px;flex:none;white-space:nowrap;padding:8px;color:var(--ink)}
+    #siren-precision-toggle {flex:none;white-space:nowrap}
+    #siren-delete-recognized {flex:none;white-space:nowrap;color:#9c3445;border:1px solid #bc7984;background:#fff5f5;border-radius:6px;padding:9px 12px}
+    #siren-manual-overlap {max-width:760px;margin:10px auto 0;color:#8b229f}
+    .siren-items button.siren-manual-item {border-color:#bb32d3;color:#8b229f}
+    .siren-fields {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .siren-fields>div {min-width:0}
+    .siren-fields input[type=range] {display:block;width:100%;min-height:30px;margin:6px 0;accent-color:#a57b37}
+    .siren-field-heading {display:flex;align-items:center;justify-content:space-between;gap:8px}
+    #siren-rotation-mode {padding:2px 10px;white-space:nowrap}
+    @media(max-width:520px){.siren-selection-bar{flex-wrap:wrap}.siren-items{flex-basis:100%}.siren-fields{grid-template-columns:1fr}}
+    .siren-keyboard-scroll {overflow-x:auto;max-width:100%;padding-bottom:5px}
+    .siren-keyboard {display:grid;grid-template-columns:repeat(13,minmax(48px,1fr));gap:7px;min-width:708px}
+    .siren-keyboard button {display:flex;flex-direction:column;gap:7px;align-items:center;justify-content:center;padding:8px 3px;border:1px solid #c5cdc1;border-radius:7px;background:#f7f7f0;font-size:15px;color:var(--ink)}
+    .siren-keyboard img {width:100%;max-width:55px;height:auto;aspect-ratio:1;object-fit:contain;transform-origin:center}
+    #siren-match-review {max-width:760px;margin:12px auto 0;border-top:1px solid var(--line);padding-top:10px}
+    .siren-match-candidate {display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;min-width:112px}
+    .siren-match-row {display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .siren-match-tools {display:flex;flex-direction:column;gap:8px;margin-left:auto}
+    #siren-open-add {white-space:nowrap}
+    #siren-stage,#siren-match-review,#siren-keyboard-panel {overflow-anchor:none}
+    #siren-status:empty,#siren-format-status:empty,#siren-reading-groups:empty {display:none}
+    .siren-candidate-preview {display:flex;align-items:center;justify-content:center;width:96px;height:96px;background:#fffdf7;border-radius:4px}
+    .siren-candidate-preview img {display:block;width:64px;height:64px;object-fit:contain;transform-origin:center;pointer-events:none}
+    #siren-status {border-left:3px solid #a57b37;padding-left:12px;color:#35483e}
+    .glyph-samples summary {cursor:pointer;font-size:16px}
+    .glyph-sample-row {display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding:12px 0;font-size:14px}
+    .glyph-sample-row img {width:80px;height:80px;object-fit:contain;background:#eee}
+    .glyph-sample-row input[type=text] {min-width:180px;flex:1;padding:6px}
+    .glyph-sample-row select {max-width:200px;padding:6px}
+
+    @media(max-width:760px){.siren-card{padding:14px}.siren-heading span{display:block}.siren-group-actions button{padding:8px}}

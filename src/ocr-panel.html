@@ -19,6 +19,7 @@
           <div class="ocr-settings">
             <label>字色 <select id="ocr-polarity"><option value="auto">自动判断</option><option value="dark">深字浅底</option><option value="light">浅字深底</option></select></label>
             <label><input id="ocr-single" type="checkbox"> 框选内容仅一行</label>
+            <label title="融合粗细两种字形细节；模糊图可取消后重新识别对照"><input id="ocr-detail" type="checkbox" checked> 多尺度精细比对</label>
             <label><input id="ocr-auto" type="checkbox" checked> 自动阈值</label>
             <label>阈值 <input id="ocr-threshold" type="range" min="0" max="254" value="150" disabled><output id="ocr-threshold-value">150</output></label>
           </div>
@@ -34,10 +35,13 @@
           <h3 id="ocr-review-title">复核字形</h3>
           <div class="ocr-review-images"><figure><canvas id="ocr-piece" aria-label="选中字形的原图裁片"></canvas><figcaption id="ocr-piece-caption">原图裁片</figcaption></figure><figure><img id="ocr-choice-image" alt="选中的候选字形"><figcaption>候选模板</figcaption></figure></div>
           <div id="ocr-candidates" class="ocr-candidates" aria-label="图形匹配候选"></div>
+          <div class="ocr-toolbar"><button id="ocr-deep" type="button" class="secondary">疑难字形深度识别</button><button id="ocr-add-sample" type="button" class="secondary">已核实，加入样本库</button></div>
+          <p id="ocr-deep-status" class="ocr-help" role="status"></p><div id="ocr-deep-candidates" class="ocr-candidates" aria-label="深度识别候选"></div>
           <div class="ocr-toolbar"><label>全部字形 <select id="ocr-choice" aria-label="手动选择字形"></select></label><button id="ocr-confirm" type="button" class="primary">确认使用此字形</button><button id="ocr-unknown" type="button" class="secondary">标为待确认</button><button id="ocr-edit-map" type="button" class="text-button">编辑此字形的映射</button></div>
           <details id="ocr-segmentation" class="ocr-crop-details"><summary>分割不正确？</summary><div class="ocr-toolbar"><label>从左侧 <input id="ocr-split-at" type="number" min="10" max="90" value="50"> % 处</label><button id="ocr-split" type="button" class="secondary">拆成两个字形</button><button id="ocr-merge" type="button" class="secondary">与本行下一项合并</button><button id="ocr-rebox" type="button" class="secondary">在截图中重新框选此字形</button></div><p class="ocr-help">重新框选会回收移出旧框的笔画，与邻近项一起重识别；新框重叠其他框超过20%也会触发。映射不变，请复核新候选。</p></details>
         </section>
       </div>
+      <div id="ocr-samples" class="ocr-card"></div>
       <div id="ocr-results" class="ocr-card" hidden>
         <h2>识别结果</h2>
         <label class="ocr-output-label" for="ocr-output">逐字英文 · 跟随当前映射，未经分词</label><textarea id="ocr-output" readonly spellcheck="false" rows="4" aria-label="截图识别英文"></textarea>

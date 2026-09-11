@@ -1,14 +1,23 @@
 {
   "name": "babelian-generator",
-  "version": "1.4.2",
+  "version": "1.9.7",
   "private": true,
   "description": "Offline Babelian glyph keyboard and custom mapping editor for Aeon Trespass: Odyssey",
   "scripts": {
     "build": "node scripts/build.cjs",
-    "test": "node tests/platform.cjs && node tests/ocr.cjs && node tests/text-format.cjs && node tests/ocr-correction.cjs && node tests/translation.cjs && node tests/ocr-layout.cjs && node tests/ato-package.cjs",
+    "test": "node tests/platform.cjs && node tests/ocr.cjs && node tests/ocr-rows.cjs && node tests/text-format.cjs && node tests/ocr-correction.cjs && node tests/translation.cjs && node tests/ocr-layout.cjs && node tests/ato-package.cjs && node tests/siren.cjs && node tests/siren-boundary.cjs && node tests/siren-ui.cjs && node tests/siren-crop.cjs && node tests/language-navigation.cjs && node tests/siren-strip.cjs && node tests/siren-photometric.cjs && node tests/siren-strip-recognition.cjs && node tests/siren-recognition.cjs && node tests/siren-format.cjs && node tests/siren-deep.cjs && node tests/babelian-deep.cjs && node tests/glyph-samples.cjs",
     "check:ato": "node scripts/check-ato.cjs",
-    "test:browser": "node tests/smoke.cjs"
+    "test:siren-sample": "node tests/siren-user-sample.cjs",
+    "test:siren-inverse": "node tests/siren-inverse-sample.cjs",
+    "test:siren-soft": "node tests/siren-soft-sample.cjs",
+    "test:babelian-samples": "node tests/ocr-reference-samples.cjs",
+    "test:browser": "node tests/smoke.cjs",
+    "test:deep-browser": "node tests/deep-browser.cjs"
   },
-  "engines": { "node": ">=20" },
-  "devDependencies": { "playwright": "^1.62.1" }
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
 }

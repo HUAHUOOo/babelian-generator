@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),G=require('../src/glyph-samples.js');
+const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M8AAAICAQB7CY0KAAAAAElFTkSuQmCC';
+const record={language:'babelian',glyphId:'opaque-1',image:png,annotation:{box:{x:0,y:0,width:1,height:1},excludedBoxes:[]}};
+const library=G.create({babelianIds:['opaque-1','opaque-2']});let notifications=0;library.subscribe(()=>notifications++);
+assert(!library.dirty());const key=library.add(record);assert(library.dirty());assert.equal(notifications,1);assert.equal(library.snapshot()[0].width,1);
+assert.throws(()=>library.add({...record,glyphId:'opaque-2'}),/收录/);assert.equal(library.snapshot().length,1);
+const rev=library.revision();library.update(key,{glyphId:'opaque-2',note:'人工确认',include:false});library.markSaved(rev);assert(library.dirty());library.markSaved(library.revision());assert(!library.dirty());
+const data=library.encode();assert(!data.includes(key));const copy=G.create({babelianIds:['opaque-1','opaque-2']});assert.equal(copy.merge(data),1);assert.equal(copy.merge(data),0);assert.equal(copy.snapshot()[0].glyphId,'opaque-2');assert.equal(copy.snapshot()[0].include,false);
+const pose={x:300,y:300,size:200,rotation:45};const siren={language:'siren',glyphId:'V',image:png,annotation:{frame:600,base:pose,glyph:pose,contact:null},include:false,note:'朝向异常，仅留档'};
+const sk=library.add(siren);assert.equal(library.snapshot()[1].note,'朝向异常，仅留档');const isolated=library.snapshot();isolated[0].note='changed';assert.notEqual(library.snapshot()[0].note,'changed');
+const before=library.encode();assert.throws(()=>library.merge(JSON.stringify({format:G.FORMAT,version:1,samples:[{...siren,annotation:{...siren.annotation,glyph:{...pose,x:301}}},record]})),/冲突/);assert.equal(library.encode(),before,'Conflicting import must be atomic');
+for(const patch of [{image:'https://example.test/x.png'},{image:'data:image/svg+xml,<svg/>'},{glyphId:'unknown'},{include:'true'},{note:'x'.repeat(301)},{annotation:{box:{x:0,y:0,width:2,height:1}}}])assert.throws(()=>library.add({...record,...patch}));
+for(const patch of [{frame:500},{glyph:{...pose,x:601}},{glyph:{...pose,rotation:181}}])assert.throws(()=>library.add({...siren,annotation:{...siren.annotation,...patch}}));
+assert.throws(()=>library.merge('{"format":"other","version":1,"samples":[]}'));assert.equal(library.encode(),before);
+const huge=Buffer.from(png.slice(22),'base64');huge.writeUInt32BE(1201,16);assert.throws(()=>library.add({...record,image:'data:image/png;base64,'+huge.toString('base64')}),/尺寸/);
+library.remove(sk);assert.equal(library.snapshot().length,1);assert(library.dirty());
+console.log('PASS explicit sample library: IDs, images, annotation validation, exclusion, edits, isolated snapshots, atomic merge/conflicts, export and dirty revisions.');

@@ -47,7 +47,30 @@
     if(count===data.length||count===0)return {width,height,data:new Uint8Array(data.length),threshold,polarity};
     return {width,height,data,threshold,polarity};
   }
-  function describe(mask,box=bounds(mask)){
+  function fineDescriptor(mask,box){
+    const size=64,rows=new Uint32Array(size*2),wide=new Uint32Array(size*2);let count=0;
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+      let ink=0;
+      for(const dy of [.25,.75])for(const dx of [.25,.75]){
+        const sx=Math.min(mask.width-1,Math.floor(box.x+(x+dx)*box.width/size));
+        const sy=Math.min(mask.height-1,Math.floor(box.y+(y+dy)*box.height/size));ink+=mask.data[sy*mask.width+sx];
+      }
+      if(ink>=2){rows[y*2+(x>>>5)]|=1<<(x&31);count++;}
+    }
+    for(let y=0;y<size;y++){
+      const left=rows[y*2]|(rows[(y-1)*2]||0)|(rows[(y+1)*2]||0),right=rows[y*2+1]|(rows[(y-1)*2+1]||0)|(rows[(y+1)*2+1]||0);
+      wide[y*2]=left|(left<<1)|(left>>>1)|(right<<31);
+      wide[y*2+1]=right|(right<<1)|(right>>>1)|(left>>>31);
+    }
+    return {rows,wide,count};
+  }
+  function fineScore(a,b){
+    let overlap=0,near1=0,near2=0;
+    for(let i=0;i<a.rows.length;i++){overlap+=pop(a.rows[i]&b.rows[i]);near1+=pop(a.rows[i]&b.wide[i]);near2+=pop(b.rows[i]&a.wide[i]);}
+    const total=a.count+b.count;
+    return total ? .64*(2*overlap/total)+.36*((near1+near2)/total) : 0;
+  }
+  function describe(mask,box=bounds(mask),detail=true){
     if(!box)return null;
     const rows=new Uint32Array(SIZE),wide=new Uint32Array(SIZE);let count=0;
     // Multiple samples retain thin wedges after normalizing the candidate rectangle.
@@ -62,10 +85,10 @@
     for(let y=0;y<SIZE;y++){
       let r=rows[y]|(rows[y-1]||0)|(rows[y+1]||0);wide[y]=r|(r<<1)|(r>>>1);
     }
-    return {rows,wide,count,ratio:box.width/box.height};
+    return {rows,wide,count,ratio:box.width/box.height,...(detail?{fine:fineDescriptor(mask,box)}:{})};
   }
-  function prepareTemplates(items){
-    return items.map(item=>({id:item.id,...describe(item)}));
+  function prepareTemplates(items,options={}){
+    return items.map(item=>({id:item.id,...describe(item,undefined,options.detail!==false)}));
   }
   function matchDescriptor(candidate,templates){
     const ranked=[];
@@ -75,22 +98,43 @@
       let overlap=0,near1=0,near2=0;
       for(let i=0;i<SIZE;i++){overlap+=pop(candidate.rows[i]&t.rows[i]);near1+=pop(candidate.rows[i]&t.wide[i]);near2+=pop(t.rows[i]&candidate.wide[i]);}
       const total=candidate.count+t.count;
-      const score=Math.max(0,.64*(2*overlap/total)+.36*((near1+near2)/total)-.38*aspect);
+      const coarse=.64*(2*overlap/total)+.36*((near1+near2)/total);
+      // Fine wedges add detail, coarse shape stays dominant for noisy scans.
+      const fine=candidate.fine&&t.fine?fineScore(candidate.fine,t.fine):coarse;
+      const score=Math.max(0,.7*coarse+.3*fine-.38*aspect);
       ranked.push({id:t.id,score});
     }
     return ranked.sort((a,b)=>b.score-a.score).slice(0,5);
   }
-  function rowBands(mask,oneLine=false){
+  function rowBands(mask,oneLine=false,templates=[]){
     const box=bounds(mask);if(!box)return [];
     if(oneLine)return [box];
-    const bands=[];let start=-1,last=-1;
-    for(let y=box.y;y<box.y+box.height;y++){
-      let n=0;for(let x=box.x;x<box.x+box.width;x++)n+=mask.data[y*mask.width+x];
-      if(n){if(start<0)start=y;last=y;}
-      else if(start>=0&&y-last>2){bands.push({start,end:last+1});start=-1;}
+    // Small screenshots may have just one blank pixel between full text rows.
+    // Keep those separators, then test disconnected strokes as a whole glyph;
+    // a fixed three-pixel gap incorrectly merged neighbouring text rows.
+    const raw=[];let start=-1;
+    for(let y=box.y;y<=box.y+box.height;y++){
+      let ink=0;if(y<box.y+box.height)for(let x=box.x;x<box.x+box.width;x++)ink+=mask.data[y*mask.width+x];
+      if(ink){if(start<0)start=y;}
+      else if(start>=0){raw.push(bounds(mask,box.x,start,box.x+box.width,y));start=-1;}
     }
-    if(start>=0)bands.push({start,end:last+1});
-    return bands.filter(b=>b.end-b.start>=5).map(b=>bounds(mask,box.x,b.start,box.x+box.width,b.end));
+    if(raw.length>800)throw Error('内容超过100行，请分段框选。');
+    const scores=raw.map(b=>matchDescriptor(describe(mask,b),templates)[0]?.score||0),out=[];
+    for(let i=0;i<raw.length;){
+      let best=null,bestEnd=i,bestScore=0;
+      for(let j=i+1;j<Math.min(raw.length,i+8);j++){
+        const bottom=raw[j].y+raw[j].height,combined=bounds(mask,box.x,raw[i].y,box.x+box.width,bottom);
+        if(combined.width>combined.height*1.9)continue;
+        const gap=Math.max(...raw.slice(i+1,j+1).map((b,k)=>b.y-(raw[i+k].y+raw[i+k].height)));
+        if(gap>=combined.height*.4)break;
+        const score=matchDescriptor(describe(mask,combined),templates)[0]?.score||0;
+        // No named letters or words: recombine only when the full pixel shape
+        // has strong support, better than any fragment taken on its own.
+        if(score>=.90&&score>=Math.max(...scores.slice(i,j+1))+.06&&score>bestScore){best=combined;bestEnd=j;bestScore=score;}
+      }
+      out.push(best||raw[i]);i=bestEnd+1;
+    }
+    return out.filter(b=>b.height>=5);
   }
   function atomsFor(mask,box){
     const cols=[];
@@ -122,7 +166,17 @@
       if(!Number.isFinite(costs[i]))continue;
       for(let j=i;j<Math.min(n,i+14);j++){
         if(j>i&&atoms[j].start-atoms[j-1].end>box.height*.4)break;
-        const x=atoms[i].start,width=atoms[j].end-x;if(width>box.height*1.9)break;
+        const x=atoms[i].start,width=atoms[j].end-x;
+        if(width>box.height*1.9){
+          // An isolated wide fragment is not a legal glyph, but must still
+          // have an unknown edge. Otherwise one bad fragment aborts the line.
+          if(j===i){
+            const candidateBox=bounds(mask,x,box.y,x+width,box.y+box.height),unknown=costs[i]+.65*width/box.height+.04;
+            edges.push({from:i,to:i+1,cost:unknown-costs[i]});
+            if(unknown<costs[i+1]){costs[i+1]=unknown;back[i+1]={previous:i,token:{box:candidateBox,candidates:[],id:null,score:0,certain:false,manual:false}};}
+          }
+          break;
+        }
         const candidateBox=bounds(mask,x,box.y,x+width,box.y+box.height);
         if(!candidateBox)continue;
         const heightRatio=candidateBox.height/box.height;
@@ -159,7 +213,7 @@
     return tokens.reverse();
   }
   async function recognize(image,templateMasks,options={},progress=()=>{}){
-    const mask=binarize(image,options),templates=prepareTemplates(templateMasks),bands=rowBands(mask,options.oneLine);
+    const mask=binarize(image,options),templates=prepareTemplates(templateMasks,options),bands=rowBands(mask,options.oneLine,templates);
     if(bands.length>100)throw Error('内容超过100行，请分段框选。');
     const lines=[];let count=0;
     for(let i=0;i<bands.length;i++){
@@ -169,7 +223,7 @@
       lines.push({box:bands[i],tokens});progress({done:i+1,total:bands.length});
       await new Promise(resolve=>setTimeout(resolve,0));
     }
-    return {lines,threshold:mask.threshold,polarity:mask.polarity,width:image.width,height:image.height};
+    return {lines,threshold:mask.threshold,polarity:mask.polarity,width:image.width,height:image.height,detail:options.detail!==false};
   }
   function tokenReading(token,mapping){
     if(!token.id||(!token.certain&&!token.manual))return '[?]';

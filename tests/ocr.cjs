@@ -36,6 +36,11 @@ async function run(){
   if(got.join('|')!==expected.join('|'))console.log('Expected:',expected.join(' '),'\nActual:  ',got.join(' '));
   if(opts.height>=40)assert.deepEqual(got,expected);
   else result.lines.flatMap(l=>l.tokens).forEach((t,i)=>{if(t.id!==expected[i])assert.equal(t.certain,false,'Incorrect low-res result must remain uncertain');});
+  const legacy=await OCR.recognize(draw(lines,opts),masks,{detail:false});assert.equal(legacy.detail,false);assert.equal(result.detail,true);
+  const legacyTokens=legacy.lines.flatMap(l=>l.tokens),legacyCorrect=legacyTokens.filter((t,i)=>t.id===expected[i]).length;
+  if(opts.height===28){assert.equal(legacyCorrect,55);assert.equal(matches,57);assert(result.lines.flatMap(l=>l.tokens).every(t=>!t.certain));}
+  else assert.equal(legacyCorrect,58);
+  for(const [i,t] of result.lines.flatMap(l=>l.tokens).entries())if(t.certain)assert.equal(t.id,expected[i],'Enhanced matching must not turn wrong IDs into certain output');
  }
  const random=ids.filter((_,i)=>i%3===0).reverse();
  const r=await OCR.recognize(draw([random]),masks);
@@ -66,6 +71,7 @@ async function run(){
  for(const match of ui.matchAll(/\$\('(ocr-[^']+)'\)/g))assert(htmlIDs.includes(match[1]),'Missing control '+match[1]);
  assert(!/\b(fetch|XMLHttpRequest|localStorage|sessionStorage)\b/.test(ui),'OCR UI must not upload or persist source screenshots');
  assert(!/\bfetch\b/.test(fs.readFileSync(path.join(__dirname,'../src/ocr-engine.js'),'utf8')));
+ assert(htmlIDs.includes('ocr-detail'),'Enhanced matching must remain optional');
  console.log('PASS OCR integration: worker messages, cancellation, controls, span-safe append, no screenshot upload/storage.');
  console.log(`PASS OCR: ${correct}/${total} generated-sample glyph IDs; mixed case/word/current mapping; unknown markers; blank/invalid image; no language inference.`);
  // Optional local real-world fixtures, deliberately not bundled or uploaded.

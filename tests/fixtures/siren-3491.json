@@ -1,0 +1,151 @@
+{
+  "cropOrigin": [
+    240,
+    490
+  ],
+  "base": {
+    "center": [
+      350,
+      496
+    ],
+    "size": 700,
+    "rotation": 0
+  },
+  "letters": {
+    "B": {
+      "score": 0.9817986769175755,
+      "transform": [
+        213,
+        376,
+        0.634,
+        122.5
+      ],
+      "nearestIntersectionPointCrop": [
+        284,
+        447
+      ],
+      "nearestIntersectionRadius": 82.20097323024831,
+      "centerDistance": 182.12358441453978,
+      "firstPathIntersection": {
+        "pathLength": 333.39191898578736,
+        "pointCrop": [
+          303,
+          417
+        ]
+      }
+    },
+    "D": {
+      "score": 0.9798644840199077,
+      "transform": [
+        485,
+        374,
+        0.628,
+        236
+      ],
+      "nearestIntersectionPointCrop": [
+        447,
+        460
+      ],
+      "nearestIntersectionRadius": 103.46496991735899,
+      "centerDistance": 181.95878654244757,
+      "firstPathIntersection": {
+        "pathLength": 704.411254969545,
+        "pointCrop": [
+          462,
+          468
+        ]
+      }
+    },
+    "A": {
+      "score": 0.9868807854967023,
+      "transform": [
+        218,
+        572,
+        0.631,
+        60.25
+      ],
+      "nearestIntersectionPointCrop": [
+        330,
+        606
+      ],
+      "nearestIntersectionRadius": 111.80339887498948,
+      "centerDistance": 152.31546211727817,
+      "firstPathIntersection": {
+        "pathLength": 1139.8448045156756,
+        "pointCrop": [
+          222,
+          495
+        ]
+      }
+    },
+    "E": {
+      "score": 0.9760926057169858,
+      "transform": [
+        584,
+        570,
+        0.634,
+        293.75
+      ],
+      "nearestIntersectionPointCrop": [
+        527,
+        500
+      ],
+      "nearestIntersectionRadius": 177.04519197086375,
+      "centerDistance": 245.42208539575245,
+      "firstPathIntersection": {
+        "pathLength": 1605.08953724385,
+        "pointCrop": [
+          538,
+          497
+        ]
+      }
+    },
+    "F": {
+      "score": 0.96952651347115,
+      "transform": [
+        400,
+        729,
+        0.631,
+        348.75
+      ],
+      "nearestIntersectionPointCrop": [
+        324,
+        679
+      ],
+      "nearestIntersectionRadius": 184.83776670366908,
+      "centerDistance": 238.30442715149042,
+      "firstPathIntersection": {
+        "pathLength": 2626.7211383238787,
+        "pointCrop": [
+          313,
+          687
+        ]
+      }
+    },
+    "C": {
+      "score": 0.9761887988728426,
+      "transform": [
+        291,
+        133,
+        0.634,
+        165.25
+      ],
+      "nearestIntersectionPointCrop": [
+        350,
+        196
+      ],
+      "nearestIntersectionRadius": 300,
+      "centerDistance": 367.76351096866586,
+      "firstPathIntersection": {
+        "pathLength": 3521.4704884099797,
+        "pointCrop": [
+          362,
+          190
+        ]
+      }
+    }
+  },
+  "note": "Visual template transforms fitted independently of expected label; intersection computed from foreground mask overlap. Coordinates crop-local. Expected reading is the label in the user-provided screenshot, not used to fit transforms.",
+  "expected": "BDAEFC",
+  "source": "IMG_3491.PNG"
+}

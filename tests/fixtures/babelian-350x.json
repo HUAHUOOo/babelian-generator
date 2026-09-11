@@ -1,0 +1,17 @@
+{
+  "description": "Manually checked glyph IDs. Captions and keyboard excluded from OCR input; images remain private and are not bundled. No labels are provided to the engine.",
+  "samples": [
+    {
+      "file": "IMG_3501.PNG", "dimensions": [1206,2622], "crop": [134,499,930,365],
+      "lines": ["T h i s i s the p o w e r", "OF D i o n y s i a n a l c h e", "m y b l a c k n e s s t o", "w e a l t h w e a l t h t o", "p o w e r"]
+    },
+    {
+      "file": "IMG_3502.PNG", "dimensions": [1206,2622], "crop": [134,499,930,296],
+      "lines": ["F o r i t w i e l d s the", "s t r o n g e s t w e a", "p o n a g a i n s t y o u", "g u i l t"]
+    },
+    {
+      "file": "IMG_3503.PNG", "dimensions": [1206,2622], "crop": [134,499,930,587],
+      "lines": ["T h e r e f o r e w i t", "h t h i s o u r g o l d", "e n w a t e r a_word n a t u r a l", "s u b s t a n c e i s e x", "t r a c t e d e x c e e d i", "n g a l l n a t u r a l s u", "b s t a n c e s p e r p", "e t u a l and f o r e v e r"]
+    }
+  ]
+}

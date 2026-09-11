@@ -200,7 +200,9 @@
     $('profile-status').textContent=storageAvailable?'已写入栏位 '+(chosenSlot+1)+'：'+name+(runtime.integrated?'。ATO 同步结果以上方状态为准。':'。刷新后仍可载入。'):'保存未成功，请导出配置文件备份。';
     notify(storageAvailable?(runtime.integrated?'栏位已更新，等待 ATO 同步。':'配置已保存。'):'请导出配置文件备份。');
   }
+  let babelianTool='write';
   function switchTool(tool) {
+    babelianTool=tool;
     for(const name of ['write','mapping','decode']) {
       $('tab-'+name).setAttribute('aria-selected',String(name===tool));
       $('panel-'+name).hidden=name!==tool;

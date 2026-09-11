@@ -101,10 +101,10 @@ async function run(){
   if(file==='index.html'){assert(html.includes('data:image/png;base64,'));assert(!html.includes('<script src='));}
   else{
    assert(!html.includes('data:image/png;base64,'));assert(html.includes('"mode":"ato"'));assert(html.includes('../assets/page-focus-router.js'));
-   const images=fs.readdirSync(path.join(root,'dist/ato/babelian/assets')).filter(n=>n.endsWith('.png'));assert.equal(images.length,64);
+   const images=fs.readdirSync(path.join(root,'dist/ato/babelian/assets')).filter(n=>n.endsWith('.png'));assert.equal(images.length,91);
    for(const file of images)assert.equal(fs.readFileSync(path.join(root,'dist/ato/babelian/assets',file)).subarray(1,4).toString(),'PNG');
   }
  }
- console.log('PASS build: independent single file; ATO page has no embedded artwork; 64 separate PNG assets; JavaScript syntax valid.');
+ console.log('PASS build: independent single file; ATO page has no embedded artwork; 91 separate PNG assets; JavaScript syntax valid.');
 }
 run().catch(error=>{console.error(error);process.exitCode=1;});

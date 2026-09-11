@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),S=require('../src/siren-strip.js');
+const data=new Uint8Array(10*10*4);data[(3*10+2)*4+3]=255;data[(6*10+7)*4+3]=3;data[3]=2;
+assert.deepEqual(S.inkBounds({width:10,height:10,data}),{left:1,top:2,right:9,bottom:8});
+assert.equal(S.inkBounds({width:1,height:1,data:new Uint8Array(4)}),null);
+const row=S.layout([{left:10,top:100,right:200,bottom:300},{left:80,top:50,right:140,bottom:400}],{padding:0});
+assert.equal(row.width,256);assert.equal(row.height,350);assert.equal(row.scale,1);assert.deepEqual(row.items.map(i=>[i.x,i.y,i.sy,i.height]),[[0,0,50,350],[196,0,50,350]]);
+assert.equal(row.items[1].x-(row.items[0].x+row.items[0].width),6);
+const long=S.layout(Array.from({length:50},()=>({left:0,top:0,right:600,bottom:600})));
+assert.equal(long.items.length,50);assert(long.scale<1);assert(long.width<=8192);assert(long.width*long.height<=8000000);assert(long.items.every(i=>i.y===16),'Never wrap to a second row');
+assert(long.items.every((item,index)=>item.x===16+index*606));
+assert.equal(S.layout([null]).items.length,1,'Empty group remains represented');assert.equal(S.layout([]).width,1);
+assert.throws(()=>S.layout([{left:9,top:0,right:8,bottom:1}]));
+const fs=require('node:fs'),ui=fs.readFileSync(require.resolve('../src/siren-ui.js'),'utf8');
+assert(ui.includes("paint(tileContext,group,{review:false,transparent:true})"));assert(ui.includes("SirenStrip.inkBounds(tileContext.getImageData(0,0,600,600))"));
+assert(ui.includes('ctx.drawImage(tile,p.sx,p.sy,p.width,p.height,p.x,p.y,p.width,p.height)'));assert(!ui.includes('columns=Math.min(3'));
+assert(!ui.includes('renderStrip'));assert(!ui.includes("$('siren-strip')"));assert(ui.includes('layout=drawStrip(canvas,limit,groups)'));assert(ui.includes('[8192,4096,2048]'));assert(ui.includes('JSON.parse(JSON.stringify(doc().groups))'));
+console.log('PASS compact strip: alpha bounds, antialias margin, common baseline, six-pixel gaps, full-row export, fifty-group downsampling and allocation fallback.');

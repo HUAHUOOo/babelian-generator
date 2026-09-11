@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#243d35">
-  <title>巴别语生成器 · ATO</title>
+  <title>巴别语与塞壬语工具 · ATO</title>
   <style>
     :root { color-scheme: light; --ink:#1f2b28; --green:#243d35; --muted:#6e766e; --paper:#fffdf7; --line:#dfdfd3; --accent:#a57b37; --glyph-height:44px; }
     * { box-sizing:border-box; }
@@ -95,6 +95,15 @@
     details p { margin:8px 0 0; }
     .footer-code { white-space:nowrap; font-size:10px; letter-spacing:1.5px; margin-top:3px; }
     [hidden] { display:none!important; }
+    .language-choices {display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:28px 0}
+    .language-choice {display:flex;align-items:center;gap:22px;text-align:left;padding:30px;background:var(--paper);border:1px solid var(--line);border-radius:12px;color:var(--ink)}
+    .language-choice:hover {border-color:var(--accent);background:#faf6ea}
+    .language-choice img {width:90px;height:90px;object-fit:contain}
+    .language-choice strong {display:block;font-size:24px;margin-bottom:8px}
+    .language-choice small {font-size:15px;line-height:1.8;color:var(--muted)}
+    #language-back {font-size:15px;margin-bottom:18px}
+    #babelian-backups {display:contents}
+    @media(max-width:600px){.language-choices{grid-template-columns:1fr}.language-choice{padding:22px}.language-choice img{width:72px;height:72px}}
     .host-bar { max-width:1088px; margin:18px auto 0; padding:12px 16px; border:1px solid var(--line); border-radius:8px; background:var(--paper); font-size:14px; }
     .host-actions { display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin-top:8px; }
     .host-actions a { color:var(--green); }
@@ -215,6 +224,7 @@
     }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; } }
     __OCR_CSS__
+    __SIREN_CSS__
   </style>
 </head>
 <body>
@@ -224,10 +234,13 @@
       <span id="runtime-mode" class="offline">离线可用</span>
     </div>
   </header>
-  <section id="host-bar" class="host-bar" aria-label="运行模式与工作备份"><p id="host-status" role="status" aria-live="polite">正在载入…</p><div class="host-actions"><a id="host-home" hidden>返回主控台</a><a id="host-story" hidden>返回来源段落</a><button id="host-retry" type="button" class="text-button" hidden>重试同步</button><button id="host-reload" type="button" class="text-button" hidden>重新读取存档</button><button id="workspace-export" type="button" class="text-button" disabled>下载完整工作备份</button><button id="workspace-import" type="button" class="text-button" disabled>导入完整工作备份</button><input id="workspace-file" type="file" accept=".json,application/json" hidden></div></section>
+  <section id="host-bar" class="host-bar" aria-label="运行模式与工作备份"><p id="host-status" role="status" aria-live="polite">正在载入…</p><div class="host-actions"><a id="host-home" hidden>返回主控台</a><a id="host-story" hidden>返回来源段落</a><button id="host-retry" type="button" class="text-button" hidden>重试同步</button><button id="host-reload" type="button" class="text-button" hidden>重新读取存档</button><span id="babelian-backups" hidden><button id="workspace-export" type="button" class="text-button" disabled>下载巴别语工作备份</button><button id="workspace-import" type="button" class="text-button" disabled>导入巴别语工作备份</button><input id="workspace-file" type="file" accept=".json,application/json" hidden></span></div></section>
   <main id="tool-surface" inert>
+    <section id="language-home" aria-labelledby="language-title"><h1 id="language-title">选择语言工具</h1><div class="language-choices"><button type="button" id="language-open-babelian" class="language-choice"><img id="language-babelian-icon" alt=""><span><strong>巴别语</strong><small>字形书写 · 映射配置 · 截图破解</small></span></button><button type="button" id="language-open-siren" class="language-choice"><img id="language-siren-icon" alt=""><span><strong>塞壬语</strong><small>螺旋生成 · 截图识别 · 人工复核</small></span></button></div></section>
+    <button type="button" id="language-back" class="text-button" hidden>← 返回语言选择</button>
+    <section id="language-babelian" aria-labelledby="babelian-title" hidden>
     <div class="intro">
-      <div><div class="eyebrow">CRYPTIC LANGUAGES / BABELIAN</div><h1>巴别语生成器</h1><p>用楔形逐字书写，让英文与密文同步呈现。</p></div>
+      <div><div class="eyebrow">CRYPTIC LANGUAGES / BABELIAN</div><h1 id="babelian-title" tabindex="-1">巴别语生成器</h1><p>用楔形逐字书写，让英文与密文同步呈现。</p></div>
       <button id="download" class="primary" type="button" disabled><span class="download-mark" aria-hidden="true">↓</span>下载图片</button>
     </div>
 
@@ -241,7 +254,7 @@
       </div>
     </section>
 
-    <div class="workspace-tabs" role="tablist" aria-label="书写与解读工具"><button id="tab-write" class="workspace-tab" role="tab" aria-selected="true" aria-controls="panel-write" type="button">字形键盘</button><button id="tab-mapping" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-mapping" type="button">部件筛选与映射</button><button id="tab-decode" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-decode" type="button">截图破解</button><span id="active-map-label">当前映射：空白配置</span></div>
+    <div class="workspace-tabs" role="tablist" aria-label="巴别语工具"><button id="tab-write" class="workspace-tab" role="tab" aria-selected="true" aria-controls="panel-write" type="button">字形键盘</button><button id="tab-mapping" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-mapping" type="button">部件筛选与映射</button><button id="tab-decode" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-decode" type="button">截图破解</button><span id="active-map-label">当前映射：空白配置</span></div>
     <div id="mapping-warning" class="conflict-banner" hidden><span id="mapping-warning-text"></span><button id="resolve-conflicts" type="button" class="text-button">选择字形并处理</button></div>
     <section id="panel-write" class="keyboard-section" role="tabpanel" aria-labelledby="tab-write">
       <div class="keyboard-top"><h2 class="keyboard-title" id="keyboard-title">字形键盘<span>QWERTY / 26 LETTERS</span></h2><div class="case-switch" role="group" aria-label="键盘字形大小写"><button type="button" id="case-upper" aria-pressed="true">大写 A–Z</button><button type="button" id="case-lower" aria-pressed="false">小写 a–z</button></div></div>
@@ -268,6 +281,8 @@
       </div>
     </section>
     <footer class="footer"><details><summary>字形依据与使用说明</summary><p>内置字形来自你提供的两张巴别语对照表，共58个；不预填任何对应答案。先按六类部件数量找出字形，再设置其字母、词语或符号。字形编号只用于区分图片，不代表英文。单个 A–Z 或 a–z 会点亮对应键，其余文本显示在下方词语与符号区。对应区分大小写，重复分配时需要选择一个字形重新编辑。</p><p>电脑键盘输入跟随 Caps Lock / Shift，页面键盘同步切换。未匹配的字母仅保留英文，不生成字形；词语和符号请点击下方对应按键，不会按文本自动合并。空格只显示在英文中，不占用字形位置。未设置对应的字形仍可从筛选页插入，英文暂用 ? 占位；之后设置映射，会保留字形并更新英文。</p><p>修改映射、书写、删除都支持撤销。当前工作与5个配置栏位在浏览器允许时保存在本机，可导出JSON备份；新建空白配置不会清空保存栏位。在词语末尾按退格会删除整枚字形；修改内部英文会展开为普通字母。“下载图片”导出当前巴别语和英文。全部字形内置，断网也可使用。</p></details><span class="footer-code">ATO / BABELIAN / 02</span></footer>
+    </section>
+    __SIREN_HTML__
   </main>
   <div id="status" role="status" aria-live="polite"></div>
   <dialog id="conflict-dialog" aria-labelledby="conflict-title" aria-describedby="conflict-description"><h2 id="conflict-title">这个对应已被使用</h2><p id="conflict-description"></p><div id="conflict-options" class="conflict-options"></div><button id="conflict-cancel" type="button" class="secondary" autofocus>取消，暂不修改</button></dialog>
@@ -275,6 +290,8 @@
   __PLATFORM_JS__
   __HOST_UI_JS__
   __OCR_ENGINE_JS__
+  __BABELIAN_DEEP_JS__
+  __GLYPH_SAMPLES_JS__
   __OCR_CORRECTION_JS__
   __TRANSLATION_JS__
   __TEXT_FORMAT_JS__
@@ -283,11 +300,21 @@
   */
   const BABELIAN_ENGLISH_WORDS=__ENGLISH_WORD_DATA__;
   __OCR_UI_JS__
+  __SIREN_CORE_JS__
+  __SIREN_FORMAT_JS__
+  __SIREN_INTERSECTIONS_JS__
+  __SIREN_STRIP_JS__
+  __SIREN_RECOGNITION_JS__
+  __SIREN_SCAN_JS__
+  __SIREN_UI_JS__
+  __LANGUAGE_NAVIGATION_JS__
   (async function(){
   "use strict";
   const GLYPHS = __BABELIAN_GLYPHS__;
   const SPECIALS = {and:'AND', the:'THE', a_word:'A', OF:'OF', OR:'OR', '!/?':'!/?'};
   const PARTS = __BABELIAN_PARTS__;
+  const SIREN_ASSETS = __SIREN_ASSETS__;
+  const SIREN_PATH = __SIREN_PATH__;
   const BUILD = __BUILD_CONFIG__;
   const runtime = BabelianPlatform.create({...BUILD,ids:Object.keys(GLYPHS)});
   const host = BabelianHost.connect(runtime);
@@ -600,8 +627,9 @@
     }
   });
   document.addEventListener('keydown', event => {
-    if(event.target.closest('#host-bar,#panel-decode'))return;
-    if(event.target!==input&&!$('panel-decode').hidden)return;
+    if($('language-babelian').hidden)return;
+    if(event.target.closest('#host-bar,#language-back,#panel-decode,#panel-siren'))return;
+    if(event.target!==input&&(!$('panel-decode').hidden||!$('panel-siren').hidden))return;
     if($('conflict-dialog').open)return;
     if (event.isComposing || composing || event.altKey) return;
     if(event.target!==input && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
@@ -628,8 +656,9 @@
     }
   });
   document.addEventListener('keyup', event => {
-    if(event.target.closest('#host-bar,#panel-decode'))return;
-    if(event.target!==input&&!$('panel-decode').hidden)return;
+    if($('language-babelian').hidden)return;
+    if(event.target.closest('#host-bar,#language-back,#panel-decode,#panel-siren'))return;
+    if(event.target!==input&&(!$('panel-decode').hidden||!$('panel-siren').hidden))return;
     if($('conflict-dialog').open)return;
     if (event.isComposing || composing || event.ctrlKey || event.metaKey || event.altKey) return;
     if(event.target!==input && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
@@ -700,6 +729,7 @@
   $('download').addEventListener('click',exportPNG);
   window.addEventListener('resize',resizeEnglish);
   $('brand-glyph').src = GLYPHS.B.src;
+  $('language-babelian-icon').src=GLYPHS.B.src;$('language-siren-icon').src=SIREN_ASSETS.base.src;
   try {
     const saved = JSON.parse(STORAGE.getItem(STORE_KEY));
     if (saved && typeof saved.text === 'string') {
@@ -713,7 +743,10 @@
   input.setSelectionRange(selection.start,selection.end);
   makeKeyboard(); render();
   __MAPPING_EDITOR_JS__
-  window.BABELIAN_APP.ocr=BabelianOCRUI.mount({glyphs:GLYPHS,wordData:BABELIAN_ENGLISH_WORDS,getMapping:()=>mappingApi.snapshot().workingMap,
+  const sampleLibrary=GlyphSamples.create({babelianIds:Object.keys(GLYPHS)});
+  window.addEventListener('beforeunload',event=>{if(sampleLibrary.dirty()){event.preventDefault();event.returnValue='';}});
+  window.BABELIAN_APP.siren=SirenUI.mount({assets:SIREN_ASSETS,path:SIREN_PATH,wordData:BABELIAN_ENGLISH_WORDS,samples:sampleLibrary,notify});
+  window.BABELIAN_APP.ocr=BabelianOCRUI.mount({glyphs:GLYPHS,wordData:BABELIAN_ENGLISH_WORDS,samples:sampleLibrary,getMapping:()=>mappingApi.snapshot().workingMap,
     editMapping:glyph=>{switchTool('mapping');selectGlyph(glyph);$('mapping-value').focus();},
     append:payload=>{
       if(!payload.text)return;
@@ -723,6 +756,11 @@
       const spans=[...specialSpans,...payload.spans.map(s=>({...s,start:s.start+offset,end:s.end+offset}))];
       applyText(next,next.length,next.length,true,spans);notify('已追加到书写区；原内容保留，可撤销。');
     },notify});
+  window.BABELIAN_APP.navigation=LanguageNavigation.mount({document,onChange:next=>{
+    if(next==='babelian'){switchTool(babelianTool);resizeEnglish();}
+    else {for(const name of ['write','mapping','decode'])$('panel-'+name).hidden=true;window.BABELIAN_APP.ocr.pause();}
+    if(next==='siren')window.BABELIAN_APP.siren.refresh();else window.BABELIAN_APP.siren.pause();
+  }});
   function restoreWorkspace(value){
     const writer=value.writer;
     currentText=writer?.text||'';keyboardCase=writer?.keyboardCase||'upper';specialSpans=validateSpans(writer?.specialSpans||[],currentText);
@@ -733,7 +771,7 @@
   host.ready({restore:restoreWorkspace});
   if(runtime.integrated){
     $('profile-status').textContent='工作及五个栏位随当前 ATO 账号与战役保存；同步结果以上方状态为准。';
-    const notes=document.querySelectorAll('.footer details p');
+    const notes=document.querySelectorAll('#language-babelian .footer details p');
     notes[2].textContent='工作及五个栏位随当前 ATO 账号与战役保存，同步状态显示在页面上方；不同账号不会自动读取独立版配置。可通过 JSON 导入旧映射，或用完整工作备份迁移五个栏位及书写草稿。字形素材从本地 assets 目录载入。';
   }
   })().catch(error=>{document.getElementById('host-status').textContent='工具载入失败：'+error.message;});

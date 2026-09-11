@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),zlib=require('node:zlib');
+const S=require('../src/siren-format.js'),B=require('../src/text-format.js');
+for(const [input,output] of Object.entries({'fifty forty eight':'5048','five hundred':'500','one hundred and five':'105','one thousand five hundred forty eight':'1548','nine three zero one':'9301','zero five':'05','fifty, forty eight':'50, 48','fifty [?] forty eight':'50 [?] 48','five and six':'5 and 6','someone alone stone':'someone alone stone','one million two hundred thousand five':'1200005','twenty-one':'21','eleven thousand five hundred ninety nine minus seven thousand six hundred eighty plus sixteen':'11599 minus 7680 plus 16'}))assert.equal(S.numbers(input),output,input);
+const words=zlib.gunzipSync(fs.readFileSync(require.resolve('../src/english-words.txt.gz'))).toString(),formatter=B.create(words),draft=S.createDraft(formatter,B),payload={text:'fiftyfortyeight',spans:[]},copy=JSON.stringify(payload);
+assert.equal(S.numbers('constructor'),'constructor');assert.equal(S.numbers('one constructor'),'1 constructor');assert.equal(draft.generate({text:'CONSTRUCTOR'},{}).value,'CONSTRUCTOR');
+assert.equal(draft.generate(payload,{}).value,'5048');assert.equal(JSON.stringify(payload),copy);assert.equal(draft.edit('50, 48').error,'');assert(draft.edit('5049').error);
+assert.throws(()=>B.reflow(payload,'5048'),'Babelian source-letter protection must remain strict');
+draft.generate({text:'FIFTY'},{});draft.edit('50!');assert(draft.update({text:'FIVEZERO'},{}).stale,'Same display number must not hide a change in source letters');
+assert.equal(draft.state().value,'50!');draft.generate({text:'nine[?]three'},{});assert.equal(draft.state().value,'9 [?] 3');
+console.log('PASS Siren number presentation: cardinal chunks/digit strings, boundaries/placeholders/leading zeros, source-aware dirty drafts, unchanged Babelian validation.');

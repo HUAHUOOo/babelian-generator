@@ -23,7 +23,7 @@ function inspect(source){
     try{
       const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
       report(manifest.module==='babelian'&&manifest.contractVersion===1,'模块清单版本 '+manifest.version);
-      report(!!manifest.files?.['index.html']&&Object.keys(manifest.files||{}).length===contract.assetCount+1,'模块清单包含页面及全部64个素材');
+      report(!!manifest.files?.['index.html']&&Object.keys(manifest.files||{}).length===contract.assetCount+1,'模块清单包含页面及全部'+contract.assetCount+'个素材');
       for(const [file,record] of Object.entries(manifest.files||{})){
         if(!/^(index\.html|assets\/[a-z0-9-]+\.png)$/.test(file)){report(false,'清单中存在无效路径');continue;}
         const p=path.join(moduleRoot,file),ok=fs.existsSync(p)&&crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex')===record.sha256;
