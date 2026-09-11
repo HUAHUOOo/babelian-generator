@@ -14,6 +14,7 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   const errors=[];page.on('pageerror',error=>errors.push(String(error)));
   await page.goto(url);
   await page.waitForFunction(()=>window.BABELIAN_APP?.restoreWorkspace);
+  await page.locator('#language-open-babelian').click();
   const assetCheck=await page.evaluate(async()=>{
    const {glyphs:GLYPHS,parts:PARTS}=window.BABELIAN_APP.assets;
    const assets=[...Object.values(GLYPHS),...PARTS.components];
@@ -44,6 +45,14 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   };
   const apply=async value=>{await page.locator('#mapping-value').fill(value);await page.locator('#mapping-apply').click();};
   const assign=async(glyph,value)=>{await choose(glyph);await apply(value);};
+  const reference=await data();
+  const expected=await page.evaluate(()=>{const words={and:'AND',the:'THE',a_word:'A',OF:'OF',OR:'OR','!/?':'!/?'};return Object.fromEntries(Object.keys(window.BABELIAN_APP.assets.glyphs).map(id=>[id,words[id]??id]));});
+  assert.deepEqual(reference.workingMap,expected);assert.deepEqual(reference.baselineMap,expected);assert.equal(reference.baseName,'默认字形表');
+  assert.equal(await page.locator('.letter-key:enabled').count(),26);assert.equal(await page.locator('.special-key').count(),6);assert(!(await page.locator('#mapping-warning').isVisible()));
+  await key('A').click();await word('a_word').click();assert.equal(await text(),'AA');assert.deepEqual(await glyphs(),['A','a_word']);
+  await page.locator('#case-lower').click();assert.equal(await page.locator('.letter-key:enabled').count(),26);await key('a').click();assert.deepEqual(await glyphs(),['A','a_word','a']);
+  await page.reload();await page.locator('#language-open-babelian').click();assert.deepEqual(await glyphs(),['A','a_word','a']);assert.deepEqual((await data()).workingMap,expected);
+  await page.locator('#clear').click();await editor();await page.locator('#profile-default').click();await write();await page.locator('#case-upper').click();
   assert.equal(await page.locator('.letter-key').count(),26);
   assert.equal(await page.locator('.letter-key:disabled').count(),26);
   assert.equal(await page.locator('.letter-key img').count(),0);
@@ -64,7 +73,7 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   assert(await page.locator('#mapping-apply').isDisabled());
   await page.locator('#filter-all').click();
   assert((await page.locator('#candidate-position').textContent()).includes('/ 58'));
-  console.log('PASS: fresh use is genuinely empty; neutral catalog; component finder still works.');
+  console.log('PASS: first-use chart, all upper/lower letters and six ligatures, distinct A/article insertion and reload; explicit blank configuration and component finder remain usable.');
 
   await assign('S','A');await write();
   assert(await key('A').isEnabled());assert(await key('S').isDisabled());
@@ -139,7 +148,7 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   assert.equal(await text(),'????');assert.deepEqual(await glyphs(),['s','C','C','s']);
   await page.locator('#profile-name').fill('空白');await page.locator('#profile-save').click();
   assert(Object.values((await data()).profileSlots[1].mapping).every(value=>value===''));
-  await page.reload();await write();assert.equal(await page.locator('.letter-key:enabled').count(),0);
+  await page.reload();await page.locator('#language-open-babelian').click();await write();assert.equal(await page.locator('.letter-key:enabled').count(),0);
   assert.deepEqual(await glyphs(),['s','C','C','s']);
   await editor();await slot(0).click();await page.locator('#profile-load').click();
   assert.deepEqual((await data()).workingMap,savedMap);assert.equal(await text(),'aAAa');
@@ -157,18 +166,25 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   assert.deepEqual((await data()).workingMap,savedMap);
   console.log('PASS: partial/empty JSON round-trip; invalid imports do not mutate current mapping.');
 
+  const beforeDefault=await data(),beforeDefaultText=await text(),beforeDefaultGlyphs=await glyphs();
+  page.once('dialog',d=>d.dismiss());await page.locator('#profile-reference').click();assert.deepEqual(await data(),beforeDefault);
+  page.once('dialog',d=>d.accept());await page.locator('#profile-reference').click();assert.deepEqual((await data()).workingMap,expected);assert.deepEqual((await data()).profileSlots,beforeDefault.profileSlots);
+  await page.locator('#undo').click();assert.deepEqual((await data()).workingMap,beforeDefault.workingMap);assert.equal(await text(),beforeDefaultText);assert.deepEqual(await glyphs(),beforeDefaultGlyphs);
+  console.log('PASS: explicit default load can be cancelled, preserves five saved slots and is undoable.');
+
   // Preserve saved v1 profiles and leave their original storage bytes as backup.
   const legacyMap=await page.evaluate(()=>{
    const specials={and:'AND',the:'THE',a_word:'A',OF:'OF',OR:'OR','!/?':'!/?'};
    return Object.fromEntries(Object.keys(window.BABELIAN_APP.assets.glyphs).map(key=>[key,specials[key]??key]));
   });
-  const legacy={version:1,workingMap:legacyMap,baselineMap:legacyMap,baseName:'原表配置',chosenSlot:0,profileSlots:[{name:'原有保存栏位',mapping:{...legacyMap,S:'HELLO'},savedAt:'2026-09-08'},null,null,null,null]};
+  const legacy={version:1,workingMap:legacyMap,baselineMap:legacyMap,baseName:'原表配置',chosenSlot:0,profileSlots:[{name:'原有保存栏位',mapping:{...legacyMap,S:'HELLO',C:'A'},savedAt:'2026-09-08'},null,null,null,null]};
   await page.evaluate(({old,key,payload})=>{
    localStorage.setItem(old,JSON.stringify(payload));localStorage.removeItem(key);
    localStorage.setItem('ato-babelian-writer-v1',JSON.stringify({text:'Ab c',keyboardCase:'upper',specialSpans:[]}));
   },{old:OLD,key:STORE,payload:legacy});
   await page.reload();
-  assert(Object.values((await data()).workingMap).every(value=>value===''));
+  await page.locator('#language-open-babelian').click();
+  assert.deepEqual((await data()).workingMap,legacyMap);
   assert.equal(await text(),'Ab c');assert.deepEqual(await glyphs(),['A','b','c']);
   assert.deepEqual((await data()).profileSlots,legacy.profileSlots);
   assert.deepEqual(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),OLD),legacy);
@@ -176,15 +192,15 @@ require('node:fs').mkdirSync(path.join(__dirname,'qa'),{recursive:true});
   assert(await page.locator('#conflict-dialog').isVisible());
   assert(await page.locator('#mapping-warning').isVisible());
   assert.equal((await data()).workingMap.S,'HELLO');
-  await page.locator('.conflict-option[data-glyph="a_word"]').click();await apply('WORD A');
+  await page.locator('.conflict-option[data-glyph="C"]').click();await apply('C');
   assert(!await page.locator('#mapping-warning').isVisible());
   await write();await page.locator('#case-upper').click();assert(await key('A').isEnabled());
-  console.log('PASS: legacy default migrates to blank; saved profiles/v1 backup preserved; legacy duplicate resolves explicitly.');
+  console.log('PASS: legacy original chart, saved profiles and v1 backup preserved; custom duplicates still require explicit correction.');
 
   // Customized, unsaved v1 working drafts also survive migration.
-  legacy.workingMap={...legacyMap,S:'CUSTOM'};
+  legacy.workingMap={...legacyMap,S:'CUSTOM',C:'A'};
   await page.evaluate(({old,key,payload})=>{localStorage.setItem(old,JSON.stringify(payload));localStorage.removeItem(key);},{old:OLD,key:STORE,payload:legacy});
-  await page.reload();assert.equal((await data()).workingMap.S,'CUSTOM');
+  await page.reload();await page.locator('#language-open-babelian').click();assert.equal((await data()).workingMap.S,'CUSTOM');
   assert(await page.locator('#mapping-warning').isVisible());
   await editor();await page.locator('#profile-default').click();
   if(await text())await page.locator('#clear').click();

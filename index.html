@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#243d35">
-  <title>巴别语与塞壬语工具 · ATO</title>
+  <title>巴别语与塞壬语翻译器 · Babelian &amp; Siren Translator</title>
   <style>
     :root { color-scheme: light; --ink:#1f2b28; --green:#243d35; --muted:#6e766e; --paper:#fffdf7; --line:#dfdfd3; --accent:#a57b37; --glyph-height:44px; }
     * { box-sizing:border-box; }
@@ -357,15 +357,23 @@
   </header>
   <section id="host-bar" class="host-bar" aria-label="运行模式与工作备份"><p id="host-status" role="status" aria-live="polite">正在载入…</p><div class="host-actions"><a id="host-home" hidden>返回主控台</a><a id="host-story" hidden>返回来源段落</a><button id="host-retry" type="button" class="text-button" hidden>重试同步</button><button id="host-reload" type="button" class="text-button" hidden>重新读取存档</button><span id="babelian-backups" hidden><button id="workspace-export" type="button" class="text-button" disabled>下载巴别语工作备份</button><button id="workspace-import" type="button" class="text-button" disabled>导入巴别语工作备份</button><input id="workspace-file" type="file" accept=".json,application/json" hidden></span></div></section>
   <main id="tool-surface" inert>
-    <section id="language-home" aria-labelledby="language-title"><h1 id="language-title">选择语言工具</h1><div class="language-choices"><button type="button" id="language-open-babelian" class="language-choice"><img id="language-babelian-icon" alt=""><span><strong>巴别语</strong><small>字形书写 · 映射配置 · 截图破解</small></span></button><button type="button" id="language-open-siren" class="language-choice"><img id="language-siren-icon" alt=""><span><strong>塞壬语</strong><small>螺旋生成 · 截图识别 · 人工复核</small></span></button></div></section>
-    <button type="button" id="language-back" class="text-button" hidden>← 返回语言选择</button>
+    <section id="language-home" aria-labelledby="language-title">
+      <div class="eyebrow">BABELIAN &amp; SIREN TRANSLATOR</div><h1 id="language-title">巴别语与塞壬语翻译器</h1>
+      <div class="language-choices">
+        <button type="button" id="language-open-babelian" class="language-choice"><img id="language-babelian-icon" alt=""><span><strong>巴别语生成</strong><small>英文 → 楔形文字 · 映射配置</small></span></button>
+        <button type="button" id="language-open-babelian-translate" class="language-choice"><img id="language-babelian-translate-icon" alt=""><span><strong>巴别语翻译</strong><small>截图识别 → 英文 · 中文机翻</small></span></button>
+        <button type="button" id="language-open-siren" class="language-choice"><img id="language-siren-icon" alt=""><span><strong>塞壬语生成</strong><small>英文 → 螺旋 · 拖动排布</small></span></button>
+        <button type="button" id="language-open-siren-translate" class="language-choice"><img id="language-siren-translate-icon" alt=""><span><strong>塞壬语翻译</strong><small>截图识别 → 英文 · 中文机翻</small></span></button>
+      </div>
+    </section>
+    <button type="button" id="language-back" class="text-button" hidden>← 返回首页</button>
     <section id="language-babelian" aria-labelledby="babelian-title" hidden>
     <div class="intro">
-      <div><div class="eyebrow">CRYPTIC LANGUAGES / BABELIAN</div><h1 id="babelian-title" tabindex="-1">巴别语生成器</h1><p>用楔形逐字书写，让英文与密文同步呈现。</p></div>
+      <div><div class="eyebrow">CRYPTIC LANGUAGES / BABELIAN</div><h1 id="babelian-title" tabindex="-1">巴别语生成</h1><p id="babelian-description">用楔形逐字书写，让英文与密文同步呈现。</p></div>
       <button id="download" class="primary" type="button" disabled><span class="download-mark" aria-hidden="true">↓</span>下载图片</button>
     </div>
 
-    <section class="sheet" aria-label="巴别语与英文编辑区">
+    <section id="babelian-writer" class="sheet" aria-label="巴别语与英文编辑区">
       <div class="sheet-head"><div class="section-label">巴别语<span class="en">BABELIAN</span></div><span id="glyph-count">0 个字形</span></div>
       <div class="cipher-area" id="cipher-area"><div id="cipher-output" role="img" aria-label="尚未输入巴别语"></div></div>
       <div class="english-area">
@@ -375,11 +383,11 @@
       </div>
     </section>
 
-    <div class="workspace-tabs" role="tablist" aria-label="巴别语工具"><button id="tab-write" class="workspace-tab" role="tab" aria-selected="true" aria-controls="panel-write" type="button">字形键盘</button><button id="tab-mapping" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-mapping" type="button">部件筛选与映射</button><button id="tab-decode" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-decode" type="button">截图破解</button><span id="active-map-label">当前映射：空白配置</span></div>
+    <div class="workspace-tabs" role="tablist" aria-label="巴别语工具"><button id="tab-write" class="workspace-tab" role="tab" aria-selected="true" aria-controls="panel-write" type="button">字形键盘</button><button id="tab-mapping" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-mapping" type="button">部件筛选与映射</button><button id="tab-decode" class="workspace-tab" role="tab" aria-selected="false" aria-controls="panel-decode" type="button">截图破解</button><span id="active-map-label">当前映射：默认字形表</span></div>
     <div id="mapping-warning" class="conflict-banner" hidden><span id="mapping-warning-text"></span><button id="resolve-conflicts" type="button" class="text-button">选择字形并处理</button></div>
     <section id="panel-write" class="keyboard-section" role="tabpanel" aria-labelledby="tab-write">
       <div class="keyboard-top"><h2 class="keyboard-title" id="keyboard-title">字形键盘<span>QWERTY / 26 LETTERS</span></h2><div class="case-switch" role="group" aria-label="键盘字形大小写"><button type="button" id="case-upper" aria-pressed="true">大写 A–Z</button><button type="button" id="case-lower" aria-pressed="false">小写 a–z</button></div></div>
-      <p class="keyboard-help">首次使用为空白映射。到“部件筛选与映射”设置对应后，字母键才会亮起；大小写分别设置。</p>
+      <p class="keyboard-help">首次使用已载入默认字形表，大小写分别对应。可在“部件筛选与映射”编辑、载入默认配置或新建空白配置。</p>
       <div id="letter-keys" class="keys" role="group" aria-label="QWERTY三排26个巴别语字母按键"></div>
       <div class="special-heading">词语与符号 · 非单个英文字母的对应显示在这里</div>
       <div id="special-keys" class="special-keys" role="group" aria-label="巴别语合字与符号按键"></div>
@@ -467,13 +475,13 @@
           <div class="mapping-form"><label for="mapping-value">此字形对应的字母、词语或符号（区分大小写）</label><input id="mapping-value" class="mapping-input" maxlength="40" autocomplete="off" spellcheck="false" placeholder="例如 S、s、AND 或 ?；留空取消对应"><div class="mapping-actions"><button id="mapping-apply" type="button" class="primary">应用此映射</button><button id="mapping-insert" type="button" class="secondary">插入此字形</button><button id="mapping-reset" type="button" class="text-button">清除此映射</button></div><div id="mapping-conflict" role="status"></div></div>
           <details class="catalog-details"><summary>全部58个字形 · 点击可重新编辑</summary><div id="glyph-catalog" class="glyph-catalog"></div></details>
         </div>
-        <aside class="mapping-card" aria-label="映射配置保存栏位"><h2>映射配置</h2><p class="mapping-help">5个独立栏位。选中栏位后可保存当前映射，或载入已保存的配置；支持只设置部分字形。</p><div id="profile-slots" class="profile-slots"></div><label for="profile-name" class="profile-name-label">配置名称</label><input id="profile-name" class="mapping-input" maxlength="30" autocomplete="off"><div class="profile-actions"><button id="profile-save" type="button" class="primary">保存到此栏位</button><button id="profile-load" type="button" class="secondary">载入此配置</button></div><div class="profile-extra"><button id="profile-default" type="button" class="text-button">新建空白配置</button><button id="profile-export" type="button" class="text-button">导出当前配置</button><button id="profile-import" type="button" class="text-button">导入到此栏位</button><input id="profile-file" type="file" accept=".json,application/json" hidden></div><p id="profile-status" class="mapping-help" role="status">工作中的映射会自动保存在本浏览器。命名保存后，可随时切换。</p></aside>
+        <aside class="mapping-card" aria-label="映射配置保存栏位"><h2>映射配置</h2><p class="mapping-help">5个独立栏位。选中栏位后可保存当前映射，或载入已保存的配置；支持只设置部分字形。</p><div id="profile-slots" class="profile-slots"></div><label for="profile-name" class="profile-name-label">配置名称</label><input id="profile-name" class="mapping-input" maxlength="30" autocomplete="off"><div class="profile-actions"><button id="profile-save" type="button" class="primary">保存到此栏位</button><button id="profile-load" type="button" class="secondary">载入此配置</button></div><div class="profile-extra"><button id="profile-reference" type="button" class="text-button">载入默认配置</button><button id="profile-default" type="button" class="text-button">新建空白配置</button><button id="profile-export" type="button" class="text-button">导出当前配置</button><button id="profile-import" type="button" class="text-button">导入到此栏位</button><input id="profile-file" type="file" accept=".json,application/json" hidden></div><p id="profile-status" class="mapping-help" role="status">工作中的映射会自动保存在本浏览器。命名保存后，可随时切换。</p></aside>
       </div>
     </section>
-    <footer class="footer"><details><summary>字形依据与使用说明</summary><p>内置字形来自你提供的两张巴别语对照表，共58个；不预填任何对应答案。先按六类部件数量找出字形，再设置其字母、词语或符号。字形编号只用于区分图片，不代表英文。单个 A–Z 或 a–z 会点亮对应键，其余文本显示在下方词语与符号区。对应区分大小写，重复分配时需要选择一个字形重新编辑。</p><p>电脑键盘输入跟随 Caps Lock / Shift，页面键盘同步切换。未匹配的字母仅保留英文，不生成字形；词语和符号请点击下方对应按键，不会按文本自动合并。空格只显示在英文中，不占用字形位置。未设置对应的字形仍可从筛选页插入，英文暂用 ? 占位；之后设置映射，会保留字形并更新英文。</p><p>修改映射、书写、删除都支持撤销。当前工作与5个配置栏位在浏览器允许时保存在本机，可导出JSON备份；新建空白配置不会清空保存栏位。在词语末尾按退格会删除整枚字形；修改内部英文会展开为普通字母。“下载图片”导出当前巴别语和英文。全部字形内置，断网也可使用。</p></details><span class="footer-code">ATO / BABELIAN / 02</span></footer>
+    <footer class="footer"><details><summary>字形依据与使用说明</summary><p>内置58个字形及默认对应采用所提供的巴别语对照表，首次使用即可书写与识别。也可按六类部件查找并编辑对应。字形编号只用于区分图片，不代表英文。单个 A–Z 或 a–z 会点亮对应键，其余文本显示在下方词语与符号区。对应区分大小写；原表的字母 A 和单词 A 分别位于字母键及词语区，其他重复分配仍需处理。</p><p>电脑键盘输入跟随 Caps Lock / Shift，页面键盘同步切换。未匹配的字母仅保留英文，不生成字形；词语和符号请点击下方对应按键，不会按文本自动合并。空格只显示在英文中，不占用字形位置。未设置对应的字形仍可从筛选页插入，英文暂用 ? 占位；之后设置映射，会保留字形并更新英文。</p><p>修改映射、书写、删除都支持撤销。当前工作与5个配置栏位在浏览器允许时保存在本机，可导出JSON备份；新建空白配置不会清空保存栏位。在词语末尾按退格会删除整枚字形；修改内部英文会展开为普通字母。“下载图片”导出当前巴别语和英文。全部字形内置，断网也可使用。</p></details><span class="footer-code">ATO / BABELIAN / 02</span></footer>
     </section>
         <section id="panel-siren" aria-labelledby="siren-title" hidden>
-      <div class="siren-heading"><h1 id="siren-title" tabindex="-1">塞壬语工作台</h1><span>六字母一组 · 沿大螺旋首交点排序</span></div>
+      <div class="siren-heading"><h1 id="siren-title" tabindex="-1">塞壬语生成</h1><span>六字母一组 · 沿大螺旋首交点排序</span></div>
       <div class="siren-actions" role="group" aria-label="塞壬语工作模式"><button type="button" id="siren-mode-generate" aria-pressed="true" class="secondary">字母 → 螺旋</button><button type="button" id="siren-mode-review" aria-pressed="false" class="secondary">截图 → 识别与复核</button><button type="button" id="siren-save" class="text-button">保存塞壬语工作</button><button type="button" id="siren-load" class="text-button">载入工作</button><input type="file" id="siren-work-file" accept=".json,application/json" hidden></div>
       <p class="siren-note">离开前请保存塞壬语工作。</p>
       <fieldset id="siren-tools" disabled>
@@ -3043,6 +3051,7 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     renderFormatted();
   }
   function render(){
+    $('siren-title').textContent=mode==='generate'?'塞壬语生成':'塞壬语翻译';
     groupIndex=Math.min(groupIndex,Math.max(0,doc().groups.length-1));
     $('siren-generate-tools').hidden=mode!=='generate';$('siren-review-tools').hidden=mode!=='review';
     if(mode!=='generate'){$('siren-batch-panel').hidden=true;$('siren-batch-toggle').setAttribute('aria-expanded','false');}
@@ -3053,7 +3062,7 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     $('siren-stage-hint').textContent='拖动调整位置；红圈为首交点。';
     renderGroups();renderFields();renderReading();draw();scanControls();
   }
-  function switchMode(next){if(loadingImport||!ready)return;cancelScan();sourceTicket++;sourceLoading=false;selections[mode]=groupIndex;mode=next;groupIndex=selections[mode];selectItem();centerMode=false;drag=null;translation.invalidate();$('siren-path').checked=mode==='review';render();}
+  function switchMode(next){if(!['generate','review'].includes(next))throw Error('未知塞壬语功能。');if(loadingImport||!ready)return;if(next===mode){render();return;}cancelScan();sourceTicket++;sourceLoading=false;selections[mode]=groupIndex;mode=next;groupIndex=selections[mode];selectItem();centerMode=false;drag=null;translation.invalidate();$('siren-path').checked=mode==='review';render();}
   function pick(letter){
     try{
       if($('siren-keyboard-panel').hidden)return;
@@ -3348,22 +3357,26 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
         const b=button('',()=>pick(letter)),img=document.createElement('img');img.src=assets.letters[letter].src;img.alt='';keyboardImages.push(img);const label=document.createElement('span');label.textContent=letter;b.append(img,label);b.title='塞壬字母 '+letter;b.setAttribute('aria-label','塞壬字母 '+letter);$('siren-keyboard').append(b);
       }render();note('');
     }).catch(e=>note('塞壬语素材加载失败：'+e.message+' 请检查模块素材是否完整。'));
-  return {refresh:()=>{if(ready)render();},pause:()=>{cancelScan();sourceTicket++;sourceLoading=false;translation.cancel();drag=null;centerMode=false;contactMode=false;showKeyboard(false);if(ready)changed();},ready:loaded,snapshot:()=>JSON.parse(JSON.stringify(doc()))};
+  return {setMode:switchMode,refresh:()=>{if(ready)render();},pause:()=>{cancelScan();sourceTicket++;sourceLoading=false;translation.cancel();drag=null;centerMode=false;contactMode=false;showKeyboard(false);if(ready)changed();},ready:loaded,snapshot:()=>JSON.parse(JSON.stringify(doc()))};
 }};
 
   (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.LanguageNavigation=api;})(globalThis,function(){
   'use strict';
   function mount({document,onChange=()=>{}}){
-    const $=id=>document.getElementById(id);let current='home',previous='babelian';
+    const $=id=>document.getElementById(id);let current='home',previous='babelian-generate';
+    const entries={'babelian-generate':'language-open-babelian','babelian-translate':'language-open-babelian-translate','siren-generate':'language-open-siren','siren-translate':'language-open-siren-translate'};
     function show(next,{focus=true}={}){
-      if(!['home','babelian','siren'].includes(next))throw Error('未知语言工具。');
+      // Keep the old public language shortcuts as generation entry aliases.
+      next=({babelian:'babelian-generate',siren:'siren-generate'})[next]||next;
+      if(next!=='home'&&!Object.hasOwn(entries,next))throw Error('未知语言工具。');
       const old=current;current=next;if(next!=='home')previous=next;
-      $('language-home').hidden=next!=='home';$('language-babelian').hidden=next!=='babelian';$('panel-siren').hidden=next!=='siren';
-      $('language-back').hidden=next==='home';$('babelian-backups').hidden=next!=='babelian';
+      const babelian=next.startsWith('babelian-'),siren=next.startsWith('siren-');
+      $('language-home').hidden=next!=='home';$('language-babelian').hidden=!babelian;$('panel-siren').hidden=!siren;
+      $('language-back').hidden=next==='home';$('babelian-backups').hidden=!babelian;
       onChange(next,old);
-      if(focus)(next==='home'?$('language-open-'+previous):$(next==='babelian'?'babelian-title':'siren-title')).focus({preventScroll:true});
+      if(focus)(next==='home'?$(entries[previous]):$(babelian?'babelian-title':'siren-title')).focus({preventScroll:true});
     }
-    for(const name of ['babelian','siren'])$('language-open-'+name).addEventListener('click',()=>show(name));
+    for(const [name,id] of Object.entries(entries))$(id).addEventListener('click',()=>show(name));
     $('language-back').addEventListener('click',()=>show('home'));
     show('home',{focus:false});return {show,current:()=>current};
   }
@@ -3598,10 +3611,11 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     specialKeys.replaceChildren();
     for (const glyph of Object.keys(GLYPHS)) {
       const value=mappedValue(glyph);
-      if(!value || /^[A-Za-z]$/.test(value))continue;
+      const article=mappingApi?.isReferenceArticle(glyph);
+      if(!value || (/^[A-Za-z]$/.test(value)&&!article))continue;
       const button=document.createElement('button');
       button.type='button'; button.className='special-key'; button.dataset.glyph=glyph;
-      button.disabled=glyphForLetter(value)!==glyph;
+      button.disabled=!article&&glyphForLetter(value)!==glyph;
       button.setAttribute('aria-label',`输入 ${value} 的字形`);button.title=value;
       const img=imageFor(glyph,'key-glyph'); img.alt='';
       const label=document.createElement('span'); label.className='key-letter'; label.textContent=value;
@@ -3689,7 +3703,7 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     }
   });
   document.addEventListener('keydown', event => {
-    if($('language-babelian').hidden)return;
+    if($('language-babelian').hidden||$('babelian-writer').hidden)return;
     if(event.target.closest('#host-bar,#language-back,#panel-decode,#panel-siren'))return;
     if(event.target!==input&&(!$('panel-decode').hidden||!$('panel-siren').hidden))return;
     if($('conflict-dialog').open)return;
@@ -3718,7 +3732,7 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     }
   });
   document.addEventListener('keyup', event => {
-    if($('language-babelian').hidden)return;
+    if($('language-babelian').hidden||$('babelian-writer').hidden)return;
     if(event.target.closest('#host-bar,#language-back,#panel-decode,#panel-siren'))return;
     if(event.target!==input&&(!$('panel-decode').hidden||!$('panel-siren').hidden))return;
     if($('conflict-dialog').open)return;
@@ -3792,6 +3806,7 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
   window.addEventListener('resize',resizeEnglish);
   $('brand-glyph').src = GLYPHS.B.src;
   $('language-babelian-icon').src=GLYPHS.B.src;$('language-siren-icon').src=SIREN_ASSETS.base.src;
+  $('language-babelian-translate-icon').src=GLYPHS.B.src;$('language-siren-translate-icon').src=SIREN_ASSETS.base.src;
   try {
     const saved = JSON.parse(STORAGE.getItem(STORE_KEY));
     if (saved && typeof saved.text === 'string') {
@@ -3806,12 +3821,12 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
   makeKeyboard(); render();
     // Glyph identities stay fixed. Profiles change their readings, not their shapes.
   const GLYPH_IDS=Object.keys(GLYPHS);
-  const DEFAULT_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,'']));
-  // Only used to identify the old automatically filled default during migration.
-  const LEGACY_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,SPECIALS[key] ?? key]));
+  const EMPTY_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,'']));
+  // Stable IDs were matched against the supplied letter/ligature charts.
+  const DEFAULT_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,SPECIALS[key] ?? key]));
   const MAPPING_STORE='ato-babelian-mapping-profiles-v2';
   const LEGACY_STORE='ato-babelian-mapping-profiles-v1';
-  let workingMap={...DEFAULT_MAP}, baselineMap={...DEFAULT_MAP}, baseName='空白配置';
+  let workingMap={...DEFAULT_MAP}, baselineMap={...DEFAULT_MAP}, baseName='默认字形表';
   let profileSlots=Array(5).fill(null), chosenSlot=0;
   let componentCounts=[0,3,1,0,0,0], showAllGlyphs=false, chosenGlyph='S';
   let storageAvailable=true;
@@ -3832,15 +3847,19 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
   }
   function reading(glyph) {return workingMap[glyph] ?? '';}
   function glyphLabel(glyph) {return '字形 G'+String(GLYPH_IDS.indexOf(glyph)+1).padStart(2,'0');}
-  function duplicatesFor(value,glyph=null) {return value ? GLYPH_IDS.filter(key=>key!==glyph && workingMap[key]===value) : [];}
+  // The reference chart deliberately includes both the letter A and article A.
+  // This one known pair is not an arbitrary custom duplicate assignment.
+  function referencePair(value,a,b){return value==='A'&&((a==='A'&&b==='a_word')||(a==='a_word'&&b==='A'));}
+  function referenceArticle(glyph){return glyph==='a_word'&&workingMap.A==='A'&&workingMap.a_word==='A';}
+  function duplicatesFor(value,glyph=null) {return value ? GLYPH_IDS.filter(key=>key!==glyph && workingMap[key]===value && !referencePair(value,key,glyph)) : [];}
   function conflictGroups(mapping=workingMap) {
     const groups=new Map();
     for(const glyph of GLYPH_IDS){const value=mapping[glyph];if(value){if(!groups.has(value))groups.set(value,[]);groups.get(value).push(glyph);}}
-    return [...groups].filter(([,glyphs])=>glyphs.length>1);
+    return [...groups].filter(([value,glyphs])=>glyphs.length>1&&!(glyphs.length===2&&referencePair(value,...glyphs)));
   }
   function resolveReading(letter) {
     // Legacy profiles are preserved, but ambiguous readings are never guessed.
-    const matches=duplicatesFor(letter);
+    const matches=duplicatesFor(letter).filter(key=>!referenceArticle(key));
     return matches.length===1 ? matches[0] : null;
   }
   function updateMappingBadge() {
@@ -4040,7 +4059,11 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     const slot=profileSlots[chosenSlot];
     if(slot && useMapping(slot.mapping,{name:slot.name,baseline:slot.mapping})){$('profile-status').textContent='已载入 '+slot.name+'；现有巴别语字形保留，英文按此配置更新。';notify('已载入 '+slot.name+'。');openExistingConflict();}
   });
-  $('profile-default').addEventListener('click',()=>{if(useMapping(DEFAULT_MAP,{name:'空白配置',baseline:DEFAULT_MAP}))notify('已新建空白配置。已保存栏位不受影响。');});
+  $('profile-default').addEventListener('click',()=>{if(useMapping(EMPTY_MAP,{name:'空白配置',baseline:EMPTY_MAP}))notify('已新建空白配置。已保存栏位不受影响。');});
+  $('profile-reference').addEventListener('click',()=>{
+    if(!mappingsEqual(workingMap,DEFAULT_MAP)&&!confirm('载入默认字形表将替换当前工作映射，已保存栏位保留；可撤销。继续？'))return;
+    if(useMapping(DEFAULT_MAP,{name:'默认字形表',baseline:DEFAULT_MAP}))notify('已载入默认字形表。已保存栏位不受影响，可撤销。');
+  });
   $('profile-export').addEventListener('click',async()=>{
     const name=$('profile-name').value.trim()||baseName;
     const payload={format:'ato-babelian-mapping',version:2,name,mapping:workingMap};
@@ -4061,36 +4084,21 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     }catch(error){notify('导入失败：'+error.message);}finally{event.target.value='';}
   });
   function loadMappingState(saved){
-    workingMap={...DEFAULT_MAP};baselineMap={...DEFAULT_MAP};baseName='空白配置';profileSlots=Array(5).fill(null);chosenSlot=0;
+    workingMap={...DEFAULT_MAP};baselineMap={...DEFAULT_MAP};baseName='默认字形表';profileSlots=Array(5).fill(null);chosenSlot=0;
     try{
     if(saved && [1,2].includes(saved.version)){
       workingMap=checkedMapping(saved.workingMap);baselineMap=checkedMapping(saved.baselineMap);
       baseName=typeof saved.baseName==='string'?saved.baseName.slice(0,30):'工作配置';
       chosenSlot=Number.isInteger(saved.chosenSlot)?Math.max(0,Math.min(4,saved.chosenSlot)):0;
       profileSlots=Array.from({length:5},(_,i)=>{const slot=saved.profileSlots?.[i];if(!slot)return null;try{return {name:String(slot.name).slice(0,30),mapping:checkedMapping(slot.mapping),savedAt:slot.savedAt};}catch(_){return null;}});
-      // Do not erase named profiles or a customized working map. Keep v1 storage
-      // untouched as a backup, even after a successful v2 migration.
-      if(saved.version===1 && baseName==='原表配置' && mappingsEqual(workingMap,LEGACY_MAP)){
-        // Retain the user's existing writing, including letters previously typed
-        // into the textarea without an explicit glyph annotation.
-        const previousSpans=new Map(specialSpans.map(span=>[span.start,span]));
-        for(let pos=0;pos<currentText.length;){
-          const span=previousSpans.get(pos);
-          if(span){pos=span.end;continue;}
-          const letter=currentText[pos];
-          if(/^[A-Za-z]$/.test(letter))specialSpans.push({start:pos,end:pos+1,glyph:letter,text:letter});
-          pos++;
-        }
-        specialSpans=validateSpans(specialSpans,currentText);
-        workingMap={...DEFAULT_MAP};baselineMap={...DEFAULT_MAP};baseName='空白配置';
-        $('profile-status').textContent='旧版自动预填的默认映射已改为空白；已保存的配置栏位保留。';
-      }
+      // Preserve both v1/v2 working maps (including intentional blank maps) and
+      // named slots. Never replace existing data merely because defaults changed.
     }
     }catch(_){}
   }
   try{loadMappingState(JSON.parse(STORAGE.getItem(MAPPING_STORE)??STORAGE.getItem(LEGACY_STORE)));}catch(_){}
   mappingApi={
-    value:reading,resolve:resolveReading,
+    value:reading,resolve:resolveReading,isReferenceArticle:referenceArticle,
     loadWorkspace:saved=>{loadMappingState(saved);renderProfiles(true);renderFinder();updateMappingBadge();persistMappings();},
     snapshot:()=>({workingMap:{...workingMap},baselineMap:{...baselineMap},baseName}),
     restore:state=>{workingMap=checkedMapping(state.workingMap);baselineMap=checkedMapping(state.baselineMap);baseName=state.baseName;makeKeyboard();renderFinder();updateMappingBadge();persistMappings();}
@@ -4111,9 +4119,22 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
       applyText(next,next.length,next.length,true,spans);notify('已追加到书写区；原内容保留，可撤销。');
     },notify});
   window.BABELIAN_APP.navigation=LanguageNavigation.mount({document,onChange:next=>{
-    if(next==='babelian'){switchTool(babelianTool);resizeEnglish();}
+    if(next.startsWith('babelian-')){
+      const translating=next==='babelian-translate';
+      $('babelian-title').textContent=translating?'巴别语翻译':'巴别语生成';
+      $('babelian-description').textContent=translating?'识别截图，按当前映射转成英文；复核后可整理与机翻。':'用楔形逐字书写，让英文与密文同步呈现。';
+      $('babelian-writer').hidden=translating;$('download').hidden=translating;
+      $('tab-write').hidden=translating;$('tab-decode').hidden=!translating;
+      $('mapping-insert').hidden=translating;
+      switchTool(translating?'decode':'write');resizeEnglish();
+    }
     else {for(const name of ['write','mapping','decode'])$('panel-'+name).hidden=true;window.BABELIAN_APP.ocr.pause();}
-    if(next==='siren')window.BABELIAN_APP.siren.refresh();else window.BABELIAN_APP.siren.pause();
+    if(next.startsWith('siren-')){
+      $('siren-title').textContent=next==='siren-translate'?'塞壬语翻译':'塞壬语生成';
+      window.BABELIAN_APP.siren.ready.then(()=>{
+        if(window.BABELIAN_APP.navigation.current()===next)window.BABELIAN_APP.siren.setMode(next==='siren-translate'?'review':'generate');
+      });
+    }else window.BABELIAN_APP.siren.pause();
   }});
   function restoreWorkspace(value){
     const writer=value.writer;

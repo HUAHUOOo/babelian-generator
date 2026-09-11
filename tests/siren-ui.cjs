@@ -20,7 +20,7 @@ class Element{
  async fire(type,extra={}){return this.listeners.get(type)?.({type,target:this,button:0,pointerId:1,preventDefault(){},...extra});}
  toDataURL(){return png;}toBlob(fn){fn(new Blob([JSON.stringify({width:this.width,height:this.height})],{type:'image/png'}));}
 }
-for(const tag of markup.matchAll(/<([a-z]+)\b([^>]*\bid="([^"]+)"[^>]*)>/g)){
+for(const tag of markup.matchAll(/<([a-z][a-z0-9]*)\b([^>]*\bid="([^"]+)"[^>]*)>/g)){
  const e=new Element(tag[1]);e.id=tag[3];e.hidden=/\shidden\b/.test(tag[2]);e.disabled=/\sdisabled\b/.test(tag[2]);e._checked=/\schecked\b/.test(tag[2]);
  for(const key of ['min','max','value']){const m=tag[2].match(new RegExp('\\b'+key+'="([^"]*)"'));if(m)e[key]=m[1];}nodes.set(e.id,e);
 }
@@ -38,6 +38,7 @@ const ui=scope.SirenUI.mount({assets,path:real.path,wordData:'hello world a b c'
 function warns(){let prevented=false;windowEvents.get('beforeunload')({preventDefault(){prevented=true;}});return prevented;}
 (async()=>{
  await ui.ready;assert.equal(el('tools').disabled,false);assert.equal(el('keyboard').children.length,26);assert(!el('gear'));assert(!el('size'));assert(!el('base-rotation'));assert(el('rotation').readOnly);assert(el('rotation-slider').disabled);
+ assert.equal(el('title').textContent,'塞壬语生成');
  assert(el('keyboard-panel').hidden);await el('keyboard').children[0].click();assert.equal(ui.snapshot().groups[0].items.length,0,'Hidden keyboard cannot add glyphs');await click('open-add');assert(!el('keyboard-panel').hidden);await click('keyboard-close');assert(el('keyboard-panel').hidden);
  for(const id of ['new-item','delete-item','unknown','strip-panel','strip','use-crop','crop-x','crop-y','crop-width','crop-height'])assert(!el(id),'Removed UI '+id);
  assert.equal(el('source-canvas').listeners.size,0,'Image preview is no longer an interactive crop tool');

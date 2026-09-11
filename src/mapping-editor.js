@@ -1,11 +1,11 @@
   // Glyph identities stay fixed. Profiles change their readings, not their shapes.
   const GLYPH_IDS=Object.keys(GLYPHS);
-  const DEFAULT_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,'']));
-  // Only used to identify the old automatically filled default during migration.
-  const LEGACY_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,SPECIALS[key] ?? key]));
+  const EMPTY_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,'']));
+  // Stable IDs were matched against the supplied letter/ligature charts.
+  const DEFAULT_MAP=Object.fromEntries(GLYPH_IDS.map(key=>[key,SPECIALS[key] ?? key]));
   const MAPPING_STORE='ato-babelian-mapping-profiles-v2';
   const LEGACY_STORE='ato-babelian-mapping-profiles-v1';
-  let workingMap={...DEFAULT_MAP}, baselineMap={...DEFAULT_MAP}, baseName='空白配置';
+  let workingMap={...DEFAULT_MAP}, baselineMap={...DEFAULT_MAP}, baseName='默认字形表';
   let profileSlots=Array(5).fill(null), chosenSlot=0;
   let componentCounts=[0,3,1,0,0,0], showAllGlyphs=false, chosenGlyph='S';
   let storageAvailable=true;
@@ -26,15 +26,19 @@
   }
   function reading(glyph) {return workingMap[glyph] ?? '';}
   function glyphLabel(glyph) {return '字形 G'+String(GLYPH_IDS.indexOf(glyph)+1).padStart(2,'0');}
-  function duplicatesFor(value,glyph=null) {return value ? GLYPH_IDS.filter(key=>key!==glyph && workingMap[key]===value) : [];}
+  // The reference chart deliberately includes both the letter A and article A.
+  // This one known pair is not an arbitrary custom duplicate assignment.
+  function referencePair(value,a,b){return value==='A'&&((a==='A'&&b==='a_word')||(a==='a_word'&&b==='A'));}
+  function referenceArticle(glyph){return glyph==='a_word'&&workingMap.A==='A'&&workingMap.a_word==='A';}
+  function duplicatesFor(value,glyph=null) {return value ? GLYPH_IDS.filter(key=>key!==glyph && workingMap[key]===value && !referencePair(value,key,glyph)) : [];}
   function conflictGroups(mapping=workingMap) {
     const groups=new Map();
     for(const glyph of GLYPH_IDS){const value=mapping[glyph];if(value){if(!groups.has(value))groups.set(value,[]);groups.get(value).push(glyph);}}
-    return [...groups].filter(([,glyphs])=>glyphs.length>1);
+    return [...groups].filter(([value,glyphs])=>glyphs.length>1&&!(glyphs.length===2&&referencePair(value,...glyphs)));
   }
   function resolveReading(letter) {
     // Legacy profiles are preserved, but ambiguous readings are never guessed.
-    const matches=duplicatesFor(letter);
+    const matches=duplicatesFor(letter).filter(key=>!referenceArticle(key));
     return matches.length===1 ? matches[0] : null;
   }
   function updateMappingBadge() {
@@ -234,7 +238,11 @@
     const slot=profileSlots[chosenSlot];
     if(slot && useMapping(slot.mapping,{name:slot.name,baseline:slot.mapping})){$('profile-status').textContent='已载入 '+slot.name+'；现有巴别语字形保留，英文按此配置更新。';notify('已载入 '+slot.name+'。');openExistingConflict();}
   });
-  $('profile-default').addEventListener('click',()=>{if(useMapping(DEFAULT_MAP,{name:'空白配置',baseline:DEFAULT_MAP}))notify('已新建空白配置。已保存栏位不受影响。');});
+  $('profile-default').addEventListener('click',()=>{if(useMapping(EMPTY_MAP,{name:'空白配置',baseline:EMPTY_MAP}))notify('已新建空白配置。已保存栏位不受影响。');});
+  $('profile-reference').addEventListener('click',()=>{
+    if(!mappingsEqual(workingMap,DEFAULT_MAP)&&!confirm('载入默认字形表将替换当前工作映射，已保存栏位保留；可撤销。继续？'))return;
+    if(useMapping(DEFAULT_MAP,{name:'默认字形表',baseline:DEFAULT_MAP}))notify('已载入默认字形表。已保存栏位不受影响，可撤销。');
+  });
   $('profile-export').addEventListener('click',async()=>{
     const name=$('profile-name').value.trim()||baseName;
     const payload={format:'ato-babelian-mapping',version:2,name,mapping:workingMap};
@@ -255,36 +263,21 @@
     }catch(error){notify('导入失败：'+error.message);}finally{event.target.value='';}
   });
   function loadMappingState(saved){
-    workingMap={...DEFAULT_MAP};baselineMap={...DEFAULT_MAP};baseName='空白配置';profileSlots=Array(5).fill(null);chosenSlot=0;
+    workingMap={...DEFAULT_MAP};baselineMap={...DEFAULT_MAP};baseName='默认字形表';profileSlots=Array(5).fill(null);chosenSlot=0;
     try{
     if(saved && [1,2].includes(saved.version)){
       workingMap=checkedMapping(saved.workingMap);baselineMap=checkedMapping(saved.baselineMap);
       baseName=typeof saved.baseName==='string'?saved.baseName.slice(0,30):'工作配置';
       chosenSlot=Number.isInteger(saved.chosenSlot)?Math.max(0,Math.min(4,saved.chosenSlot)):0;
       profileSlots=Array.from({length:5},(_,i)=>{const slot=saved.profileSlots?.[i];if(!slot)return null;try{return {name:String(slot.name).slice(0,30),mapping:checkedMapping(slot.mapping),savedAt:slot.savedAt};}catch(_){return null;}});
-      // Do not erase named profiles or a customized working map. Keep v1 storage
-      // untouched as a backup, even after a successful v2 migration.
-      if(saved.version===1 && baseName==='原表配置' && mappingsEqual(workingMap,LEGACY_MAP)){
-        // Retain the user's existing writing, including letters previously typed
-        // into the textarea without an explicit glyph annotation.
-        const previousSpans=new Map(specialSpans.map(span=>[span.start,span]));
-        for(let pos=0;pos<currentText.length;){
-          const span=previousSpans.get(pos);
-          if(span){pos=span.end;continue;}
-          const letter=currentText[pos];
-          if(/^[A-Za-z]$/.test(letter))specialSpans.push({start:pos,end:pos+1,glyph:letter,text:letter});
-          pos++;
-        }
-        specialSpans=validateSpans(specialSpans,currentText);
-        workingMap={...DEFAULT_MAP};baselineMap={...DEFAULT_MAP};baseName='空白配置';
-        $('profile-status').textContent='旧版自动预填的默认映射已改为空白；已保存的配置栏位保留。';
-      }
+      // Preserve both v1/v2 working maps (including intentional blank maps) and
+      // named slots. Never replace existing data merely because defaults changed.
     }
     }catch(_){}
   }
   try{loadMappingState(JSON.parse(STORAGE.getItem(MAPPING_STORE)??STORAGE.getItem(LEGACY_STORE)));}catch(_){}
   mappingApi={
-    value:reading,resolve:resolveReading,
+    value:reading,resolve:resolveReading,isReferenceArticle:referenceArticle,
     loadWorkspace:saved=>{loadMappingState(saved);renderProfiles(true);renderFinder();updateMappingBadge();persistMappings();},
     snapshot:()=>({workingMap:{...workingMap},baselineMap:{...baselineMap},baseName}),
     restore:state=>{workingMap=checkedMapping(state.workingMap);baselineMap=checkedMapping(state.baselineMap);baseName=state.baseName;makeKeyboard();renderFinder();updateMappingBadge();persistMappings();}

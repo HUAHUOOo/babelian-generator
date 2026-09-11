@@ -1,6 +1,10 @@
 {
   "contractVersion": 1,
   "module": "babelian",
+  "displayName": "巴别语与塞壬语翻译器",
+  "englishName": "Babelian & Siren Translator",
+  "homeEntries": ["babelian-generate", "babelian-translate", "siren-generate", "siren-translate"],
+  "defaultMapping": {"babelian": "supplied-chart-58", "siren": "calibrated-A-M-Z-N", "preserveSavedMappings": true, "referenceArticleA": "separate-word-button"},
   "entry": "babelian/index.html",
   "assetCount": 91,
   "hashStage": "before-host-packaging",

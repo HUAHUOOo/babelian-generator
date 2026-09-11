@@ -2,6 +2,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const root=path.resolve(__dirname,'..'),out=path.join(root,'dist/ato/babelian');
 const manifest=JSON.parse(fs.readFileSync(path.join(out,'babelian-module.json'),'utf8'));
 assert.equal(manifest.version,require('../package.json').version);assert.equal(manifest.module,'babelian');
+assert.equal(manifest.displayName,'巴别语与塞壬语翻译器');assert.equal(manifest.englishName,'Babelian & Siren Translator');
+assert.deepEqual(manifest.homeEntries,['babelian-generate','babelian-translate','siren-generate','siren-translate']);
+assert.equal(manifest.entry,'babelian/index.html');assert.equal(manifest.storage.section,'babelian');
 assert.equal(Object.keys(manifest.files).length,92);assert.equal(manifest.storage.documentVersion,1);assert.equal(manifest.storage.mappingVersion,2);
 assert.equal(manifest.siren.assets,27);assert.equal(manifest.siren.automaticRecognition,true);assert.equal(manifest.siren.includedInCampaignState,false);
 assert.equal(manifest.siren.readingOrder,'first-ink-crossing-along-base-path');assert.equal(manifest.siren.workVersion,6);assert.equal(manifest.siren.defaultGlyphToBaseRatio,.38);assert.deepEqual(manifest.siren.importsWorkVersions,[1,2,3,4,5,6]);

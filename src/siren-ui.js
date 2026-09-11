@@ -197,6 +197,7 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     renderFormatted();
   }
   function render(){
+    $('siren-title').textContent=mode==='generate'?'塞壬语生成':'塞壬语翻译';
     groupIndex=Math.min(groupIndex,Math.max(0,doc().groups.length-1));
     $('siren-generate-tools').hidden=mode!=='generate';$('siren-review-tools').hidden=mode!=='review';
     if(mode!=='generate'){$('siren-batch-panel').hidden=true;$('siren-batch-toggle').setAttribute('aria-expanded','false');}
@@ -207,7 +208,7 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
     $('siren-stage-hint').textContent='拖动调整位置；红圈为首交点。';
     renderGroups();renderFields();renderReading();draw();scanControls();
   }
-  function switchMode(next){if(loadingImport||!ready)return;cancelScan();sourceTicket++;sourceLoading=false;selections[mode]=groupIndex;mode=next;groupIndex=selections[mode];selectItem();centerMode=false;drag=null;translation.invalidate();$('siren-path').checked=mode==='review';render();}
+  function switchMode(next){if(!['generate','review'].includes(next))throw Error('未知塞壬语功能。');if(loadingImport||!ready)return;if(next===mode){render();return;}cancelScan();sourceTicket++;sourceLoading=false;selections[mode]=groupIndex;mode=next;groupIndex=selections[mode];selectItem();centerMode=false;drag=null;translation.invalidate();$('siren-path').checked=mode==='review';render();}
   function pick(letter){
     try{
       if($('siren-keyboard-panel').hidden)return;
@@ -502,5 +503,5 @@ globalThis.SirenUI={mount({assets,path,wordData,notify,samples}){
         const b=button('',()=>pick(letter)),img=document.createElement('img');img.src=assets.letters[letter].src;img.alt='';keyboardImages.push(img);const label=document.createElement('span');label.textContent=letter;b.append(img,label);b.title='塞壬字母 '+letter;b.setAttribute('aria-label','塞壬字母 '+letter);$('siren-keyboard').append(b);
       }render();note('');
     }).catch(e=>note('塞壬语素材加载失败：'+e.message+' 请检查模块素材是否完整。'));
-  return {refresh:()=>{if(ready)render();},pause:()=>{cancelScan();sourceTicket++;sourceLoading=false;translation.cancel();drag=null;centerMode=false;contactMode=false;showKeyboard(false);if(ready)changed();},ready:loaded,snapshot:()=>JSON.parse(JSON.stringify(doc()))};
+  return {setMode:switchMode,refresh:()=>{if(ready)render();},pause:()=>{cancelScan();sourceTicket++;sourceLoading=false;translation.cancel();drag=null;centerMode=false;contactMode=false;showKeyboard(false);if(ready)changed();},ready:loaded,snapshot:()=>JSON.parse(JSON.stringify(doc()))};
 }};
